@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "es5",
+      "es6"
+    ],
+    "outDir": "./build/compiled",
+    "target": "es6",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "preserveConstEnums": true,
+    "pretty": true,
+    "declaration": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "stripInternal": true,
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "exclude": [
+    "archive",
+    "build",
+    "dist",
+    "tmp",
+    "src/**/files"
+  ],
+  //"include": ["node_modules/rxjs-compat/*.ts"],
+  "compileOnSave": true
+}

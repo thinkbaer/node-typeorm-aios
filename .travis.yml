@@ -1,0 +1,12 @@
+language: node_js
+# sudo: required
+
+node_js:
+  - "7"
+  - "8"
+  - "9"
+
+before_install:
+  - npm install -g nyc
+  - npm install -g codecov
+
