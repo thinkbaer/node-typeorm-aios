@@ -41,6 +41,7 @@
     "typescript-require": "^0.2.10"
   },
   "dependencies": {
-    "aios": "^0.1.5"
+    "aios": "^0.1.6",
+    "squel": "^5.12.2"
   }
 }
