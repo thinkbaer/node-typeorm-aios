@@ -122,46 +122,7 @@ export class Gulpfile {
       .pipe(gulp.dest("./build/package"));
   }
 
-  /**
-   * Copies README.md into the package.
-   */
-  @Task()
-  packageCopyJsons() {
-    return gulp.src(["./src/**/*.json","!./src/app/**","!./src/modules/**"]).pipe(gulp.dest("./build/package"));
-  }
 
-  /**
-   * Copies README.md into the package.
-   */
-  @Task()
-  packageCopyHtml() {
-    return gulp.src(["./src/app/themes/**/*.html"]).pipe(gulp.dest("./build/package/app/themes"));
-  }
-
-  /**
-   * Copies README.md into the package.
-   */
-  @Task()
-  packageCopyFiles() {
-    return gulp.src(["./src/**/files/**/*"]).pipe(gulp.dest("./build/package"));
-  }
-
-  /**
-   * Copies README.md into the package.
-   */
-  // @Task()
-  // packageCopyModulContents() {
-  //   return gulp.src(["./src/modules/**/*.+(html|css|less|sass|scss|ts)","!./src/modules/app/**" ,"!./src/modules/**/*.spec.ts"])
-  //     .pipe(gulp.dest("./build/package/modules"));
-  // }
-
-  /**
-   * Copies Bin files.
-   */
-  @Task()
-  packageCopyBin() {
-    return gulp.src("./bin/*").pipe(gulp.dest("./build/package/bin"));
-  }
 
 
   /**
@@ -185,10 +146,7 @@ export class Gulpfile {
       "packageCompile",
       [
 
-        "packageCopyBin",
-        "packageCopyJsons",
-        "packageCopyFiles",
-        "packageCopyHtml",
+
         "packageReplaceReferences",
         "packagePreparePackageFile",
         "packageCopyReadme",
