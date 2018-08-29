@@ -8,9 +8,13 @@ import {QueryRunner} from "typeorm/query-runner/QueryRunner";
 import {ObjectLiteral} from "typeorm/common/ObjectLiteral";
 import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
 import {AiosConnectionOptions} from "./AiosConnectionOptions";
-import {PlatformTools} from "../../../node_modules/typeorm/platform/PlatformTools";
-import {DriverPackageNotInstalledError} from "../../../node_modules/typeorm/error/DriverPackageNotInstalledError";
+import {PlatformTools} from "typeorm/platform/PlatformTools";
+import {DriverPackageNotInstalledError} from "typeorm/error/DriverPackageNotInstalledError";
 import {AiosQueryRunner} from "./AiosQueryRunner";
+import {NotYetImplementedError} from "./NotYetImplementedError";
+import {AiosDialectFactory} from "./AiosDialectFactory";
+
+import {IDialect} from "./IDialect";
 
 
 export class AiosDriver implements Driver {
@@ -33,7 +37,6 @@ export class AiosDriver implements Driver {
   /**
    * Indicates if replication is enabled.
    */
-  //isReplicated: boolean;
   get isReplicated(): boolean {
     return false;
   }
@@ -41,32 +44,51 @@ export class AiosDriver implements Driver {
   /**
    * Indicates if tree tables are supported by this driver.
    */
-  treeSupport: boolean;
+  get treeSupport(): boolean {
+    return false;
+  }
+
   /**
    * Gets list of supported column data types by a driver.
    */
-  supportedDataTypes: ColumnType[];
+  get supportedDataTypes(): ColumnType[] {
+    return this.dialect.supportedDataTypes;
+  }
+
+
   /**
    * Default values of length, precision and scale depends on column data type.
    * Used in the cases when length/precision/scale is not specified by user.
    */
   dataTypeDefaults: DataTypeDefaults;
+
+
   /**
    * Gets list of spatial column data types.
    */
-  spatialTypes: ColumnType[];
+  spatialTypes: ColumnType[] = [];
+
   /**
    * Gets list of column data types that support length by a driver.
    */
-  withLengthColumnTypes: ColumnType[];
+  get withLengthColumnTypes(): ColumnType[] {
+    return this.dialect.withLengthColumnTypes;
+  }
+
   /**
    * Gets list of column data types that support precision by a driver.
    */
-  withPrecisionColumnTypes: ColumnType[];
+  get withPrecisionColumnTypes(): ColumnType[] {
+    return this.dialect.withPrecisionColumnTypes;
+  }
+
   /**
    * Gets list of column data types that support scale by a driver.
    */
-  withScaleColumnTypes: ColumnType[];
+  get withScaleColumnTypes(): ColumnType[] {
+    return this.dialect.withScaleColumnTypes;
+  }
+
   /**
    * Orm has special columns and we need to know what database column types should be for those types.
    * Column types are driver dependant.
@@ -85,6 +107,8 @@ export class AiosDriver implements Driver {
 
   queryRunner: AiosQueryRunner;
 
+  dialect: IDialect;
+
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -101,10 +125,11 @@ export class AiosDriver implements Driver {
 
     ['user', 'url', 'password'].forEach(k => {
       this.aiosOptions[k] = this.options[k];
-    })
+    });
 
-
+    this.dialect = AiosDialectFactory.$().get(this.options.dialect);
   }
+
 
   /**
    * If driver dependency is not given explicitly, then try to load it via "require".
@@ -138,7 +163,6 @@ export class AiosDriver implements Driver {
       } catch (e) {
         reject(e);
       }
-
     })
   }
 
@@ -146,21 +170,21 @@ export class AiosDriver implements Driver {
    * Makes any action after connection (e.g. create extensions in Postgres driver).
    */
   afterConnect(): Promise<void> {
-    return null;
+    return Promise.resolve();
   };
 
   /**
    * Closes connection with database and releases all resources.
    */
   disconnect(): Promise<void> {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Synchronizes database schema (creates tables, indices, etc).
    */
   createSchemaBuilder(): SchemaBuilder {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
@@ -178,38 +202,42 @@ export class AiosDriver implements Driver {
    * and an array of parameter names to be passed to a query.
    */
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]] {
-    return null;
+    return this.dialect.escapeQueryWithParameters(sql, parameters, nativeParameters);
   };
+
 
   /**
    * Escapes a table name, column name or an alias.
    *
-   * todo: probably escape should be able to handle dots in the names and automatically escape them
+   * todo: probably escape should be able to handle dots in the names and
+   * automatically escape them
    */
   escape(name: string): string {
-    return null;
+    return this.dialect.escape(name);
   };
+
 
   /**
    * Build full table name with database name, schema name and table name.
    * E.g. "myDB"."mySchema"."myTable"
    */
   buildTableName(tableName: string, schema?: string, database?: string): string {
-    return null;
+    throw new NotYetImplementedError()
   };
+
 
   /**
    * Prepares given value to a value to be persisted, based on its column type and metadata.
    */
   preparePersistentValue(value: any, column: ColumnMetadata): any {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Prepares given value to a value to be persisted, based on its column type.
    */
   prepareHydratedValue(value: any, column: ColumnMetadata): any {
-    return null;
+    return this.dialect.prepareHydratedValue(value, column);
   };
 
   /**
@@ -222,35 +250,38 @@ export class AiosDriver implements Driver {
     scale?: number;
     isArray?: boolean;
   }): string {
-    return null;
+    return this.dialect.normalizeType(column);
   };
+
 
   /**
    * Normalizes "default" value of the column.
    */
   normalizeDefault(columnMetadata: ColumnMetadata): string {
-    return null;
+    throw new NotYetImplementedError()
   };
+
 
   /**
    * Normalizes "isUnique" value of the column.
    */
   normalizeIsUnique(column: ColumnMetadata): boolean {
-    return null;
+    throw new NotYetImplementedError()
   };
+
 
   /**
    * Calculates column length taking into account the default length values.
    */
   getColumnLength(column: ColumnMetadata): string {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Normalizes "default" value of the column.
    */
   createFullType(column: TableColumn): string {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
@@ -259,7 +290,7 @@ export class AiosDriver implements Driver {
    * If replication is not setup then returns default connection's database connection.
    */
   obtainMasterConnection(): Promise<any> {
-    return Promise.resolve();
+    throw new NotYetImplementedError()
   };
 
   /**
@@ -268,14 +299,14 @@ export class AiosDriver implements Driver {
    * If replication is not setup then returns master (default) connection's database connection.
    */
   obtainSlaveConnection(): Promise<any> {
-    return Promise.resolve();
+    throw new NotYetImplementedError()
   };
 
   /**
    * Creates generated map of values generated or returned by database after INSERT query.
    */
   createGeneratedMap(metadata: EntityMetadata, insertResult: any): ObjectLiteral | undefined {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
@@ -283,28 +314,28 @@ export class AiosDriver implements Driver {
    * and returns only changed.
    */
   findChangedColumns(tableColumns: TableColumn[], columnMetadatas: ColumnMetadata[]): ColumnMetadata[] {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Returns true if driver supports RETURNING / OUTPUT statement.
    */
   isReturningSqlSupported(): boolean {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Returns true if driver supports uuid values generation on its own.
    */
   isUUIDGenerationSupported(): boolean {
-    return null;
+    throw new NotYetImplementedError()
   };
 
   /**
    * Creates an escaped parameter.
    */
   createParameter(parameterName: string, index: number): string {
-    return null;
+    throw new NotYetImplementedError()
   }
 
 }

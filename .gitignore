@@ -67,3 +67,5 @@ typings/
 build
 package-lock.json
 tmp/
+
+*.hidden.spec.ts
