@@ -5,3 +5,4 @@
 
 test/**/*.spec.ts
 test/**/**/*.spec.ts
+test/**/!*.hidden.spec.ts

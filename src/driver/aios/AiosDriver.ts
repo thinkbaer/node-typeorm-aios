@@ -17,6 +17,11 @@ import {AiosDialectFactory} from "./AiosDialectFactory";
 import {IDialect} from "./IDialect";
 
 
+export interface ICatalog {
+  name: string;
+  schemas: string[];
+}
+
 export class AiosDriver implements Driver {
 
   // -------------------------------------------------------------------------
@@ -110,6 +115,9 @@ export class AiosDriver implements Driver {
   dialect: IDialect;
 
 
+  catalogs: ICatalog[] = [];
+
+
   constructor(connection: Connection) {
     this.connection = connection;
     this.options = connection.options as AiosConnectionOptions;
@@ -148,8 +156,8 @@ export class AiosDriver implements Driver {
    * Performs connection to the database.
    * Depend on driver type it may create a connection pool.
    */
-  connect(): Promise<void> {
-    if (this.connected) return Promise.resolve(this.dataSource);
+  connect(): Promise<any> {
+    if (this.isConnected()) return Promise.resolve(this.dataSource);
     return new Promise<void>((resolve, reject) => {
       try {
         this.aiosServer.dataSource(this.options.id, this.aiosOptions, (err: Error, res: any) => {
@@ -163,7 +171,14 @@ export class AiosDriver implements Driver {
       } catch (e) {
         reject(e);
       }
+    }).then(async (res) => {
+      this.catalogs = await this._catalogs();
+      return res;
     })
+  }
+
+  isConnected(): boolean {
+    return this.connected;
   }
 
   /**
@@ -177,7 +192,21 @@ export class AiosDriver implements Driver {
    * Closes connection with database and releases all resources.
    */
   disconnect(): Promise<void> {
-    throw new NotYetImplementedError()
+    /*
+    return new Promise<void>((resolve, reject) => {
+      try {
+        if(this.dataSource){
+          this.dataSource.
+
+        }else{
+          this.connected = false;
+        }
+      } catch (e) {
+        reject(e);
+      }
+    })
+    */
+    throw new NotYetImplementedError();
   };
 
   /**
@@ -192,7 +221,7 @@ export class AiosDriver implements Driver {
    */
   createQueryRunner(mode: "master" | "slave"): QueryRunner {
     if (!this.queryRunner) {
-      this.queryRunner = new AiosQueryRunner(this, mode);
+      this.queryRunner = this.dialect.createQueryRunner(this, mode);
     }
     return this.queryRunner;
   };
@@ -336,6 +365,109 @@ export class AiosDriver implements Driver {
    */
   createParameter(parameterName: string, index: number): string {
     throw new NotYetImplementedError()
+  }
+
+
+  _executeBatch(queryies: string[]): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      await this.connect();
+      if (this.connected) {
+        // TODO format query!
+        this.dataSource.executeBatch(queryies, (err: Error, res: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        });
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
+  }
+
+
+  _execute(query: string): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      await this.connect();
+      if (this.connected) {
+        console.log(query);
+        // TODO format query!
+        this.dataSource.execute(query, (err: Error, res: any) => {
+          if (err != null) {
+            reject(err);
+          } else {
+            resolve(res);
+
+          }
+        })
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
+  }
+
+  _query(query: string, parameters?: any[]): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      await this.connect();
+      if (this.connected) {
+        // TODO format query!
+        console.log(query);
+        this.dataSource.query(query, (err: Error, res: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            res = this.dialect.processResultSet(res);
+            resolve(res);
+          }
+        })
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
+  }
+
+  _catalogs(): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      await this.connect();
+      if (this.connected) {
+        // TODO format query!
+        this.dataSource.listCatalogs((err: Error, res: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        })
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
+  }
+
+  _tables(catalog: string = null, table: string = null): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      await this.connect();
+      if (this.isConnected()) {
+        let tables = []
+        if (catalog) {
+          tables.push(catalog)
+          if (table) {
+            tables.push(table)
+          }
+        }
+        // TODO format query!
+        this.dataSource.listTables(tables.length > 0 ? tables.join('.') : null, (err: Error, res: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        })
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
   }
 
 }

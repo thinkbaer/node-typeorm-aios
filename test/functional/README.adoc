@@ -1,0 +1,28 @@
+
+
+= Tests
+
+
+. connect / disconnect
+. handle schema
+.. create table
+.. load table information
+.. change table
+... add column
+... remove column
+... update column
+.. drop table
+. transaction testing
+. direct quering
+. simple record handling
+.. insert record
+.. select record
+... without parameters
+... with parameters
+... joining left | inner | outer
+.. update record
+.. delete record
+
+
+
+

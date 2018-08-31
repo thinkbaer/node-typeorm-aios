@@ -1,5 +1,7 @@
-import {ColumnType, EntityManager, ObjectLiteral, ObjectType, QueryRunner, SelectQueryBuilder} from "typeorm";
+import {ColumnType, EntityManager, ObjectLiteral, ObjectType, QueryRunner, SelectQueryBuilder, Table} from "typeorm";
 import {ColumnMetadata} from "../../../node_modules/typeorm/metadata/ColumnMetadata";
+import {AiosQueryRunner} from "./AiosQueryRunner";
+import {AiosDriver} from "./AiosDriver";
 
 
 export interface IDialect {
@@ -29,8 +31,10 @@ export interface IDialect {
 
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]];
 
-
   prepareHydratedValue(value: any, columnMetadata: ColumnMetadata): any;
 
-  createQueryBuilder?<Entity>(entityManager:EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity>;
+  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity>;
+
+  createQueryRunner(driver: AiosDriver, mode: "master" | "slave"): AiosQueryRunner;
+
 }

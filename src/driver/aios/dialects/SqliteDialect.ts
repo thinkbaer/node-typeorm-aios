@@ -2,7 +2,6 @@ import {ColumnType, ObjectLiteral} from "typeorm";
 import {AbstractDialect} from "../AbstractDialect";
 
 
-
 export class SqliteDialect extends AbstractDialect {
 
   type: string = 'sqlite';
@@ -52,6 +51,7 @@ export class SqliteDialect extends AbstractDialect {
   withPrecisionColumnTypes: ColumnType[] = [];
 
   withScaleColumnTypes: ColumnType[] = [];
+
 
   normalizeType(column: { type?: ColumnType | string; length?: number | string; precision?: number | null; scale?: number; isArray?: boolean }): string {
     if (column.type === Number || column.type === "int") {

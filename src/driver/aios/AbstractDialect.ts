@@ -5,6 +5,8 @@ import {IDialect} from "./IDialect";
 import {ColumnMetadata} from "../../../node_modules/typeorm/metadata/ColumnMetadata";
 import {NotYetImplementedError} from "./NotYetImplementedError";
 import {DateUtils} from "../../../node_modules/typeorm/util/DateUtils";
+import {AiosQueryRunner} from "./AiosQueryRunner";
+import {AiosDriver} from "./AiosDriver";
 
 
 export abstract class AbstractDialect implements IDialect {
@@ -54,7 +56,7 @@ export abstract class AbstractDialect implements IDialect {
   readonly type: string;
 
   escape(name: string): string {
-    return name.replace(/\'/,"");
+    return name.replace(/\'/, "");
   }
 
 
@@ -97,5 +99,12 @@ export abstract class AbstractDialect implements IDialect {
 
   createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity>;
 
+
+  /**
+   * Creates a query runner used for common queries.
+   */
+  createQueryRunner(driver: AiosDriver, mode: "master" | "slave"): AiosQueryRunner {
+    throw new NotYetImplementedError();
+  };
 
 }

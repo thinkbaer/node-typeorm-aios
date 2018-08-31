@@ -2,6 +2,10 @@ import {AbstractDialect} from "../AbstractDialect";
 import {ColumnType, EntityManager, ObjectType, QueryRunner, SelectQueryBuilder} from "typeorm";
 import {HsqlDbSelectQueryBuilder} from "./HsqlDbSelectQueryBuilder";
 import {InformixSelectQueryBuilder} from "./InformixSelectQueryBuilder";
+import * as _ from "lodash";
+import {InformixQueryRunner} from "./InformixQueryRunner";
+import {AiosQueryRunner} from "../AiosQueryRunner";
+import {AiosDriver} from "../AiosDriver";
 
 
 export class InformixDialect extends AbstractDialect {
@@ -51,5 +55,18 @@ export class InformixDialect extends AbstractDialect {
       return new InformixSelectQueryBuilder(connection, entityClass as QueryRunner | undefined);
     }
   }
+
+  processResultSet(res: any[]): any[] {
+    if (_.isUndefined(res)) {
+      return [];
+    }
+    return res;
+  }
+
+
+  createQueryRunner(driver: AiosDriver, mode: "slave" | "master"): AiosQueryRunner {
+    return new InformixQueryRunner(driver, mode);
+  }
+
 
 }

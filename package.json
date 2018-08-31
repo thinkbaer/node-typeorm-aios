@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nyc mocha --opts test/mocha.all.opts",
+    "posttest": "nyc report --reporter=json && codecov -f coverage/*.json"
   },
   "license": "MIT",
   "private": true,
