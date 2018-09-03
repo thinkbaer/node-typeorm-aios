@@ -967,28 +967,107 @@ export class InformixQueryRunner extends AiosQueryRunner {
       return `(t.tabname = '${name}')`;
     }).join(" OR ");
 
-    const tablesSql = `SELECT * FROM systables t WHERE ` + tablesCondition;
-    const columnsSql = `SELECT * FROM syscolumns c inner join systables t on t.tabid = c.tabid WHERE ` + tablesCondition;
+    const tablesSql = `SELECT t.tabname as table_name, t.owner as table_owner FROM systables t WHERE ` + tablesCondition;
+    const columnsSql = `SELECT     
+    t.tabname as table_name, 
+    t.owner as table_owner,
+    c.colno as column_no,
+    c.colname as column_name ,
+    c.coltype as column_type,
+    c.collength as column_length,
+    d.class as column_default_class,
+    d.class as column_default_type,
+    d.default as column_default,
+    tp.type as extended_column_type,
+    tp.length as extended_column_length,
+    dsc.description as extended_column_label
+    FROM syscolumns c 
+    inner join systables t on t.tabid = c.tabid 
+    left join sysxtdtypes tp on tp.extended_id = c.extended_id
+    left join sysxtddesc dsc on dsc.extended_id = tp.extended_id
+    left join sysdefaults d on d.tabid = t.tabid and c.colno = d.colno   
+    WHERE ` + tablesCondition;
+
     const constraintsSql = '' +
-      'SELECT * FROM sysconstraints c ' +
+      'SELECT ' +
+      'c.constrname as constraint_name, ' +
+      't.tabname as table_name, ' +
+      't.owner as table_owner, ' +
+      'i.part1 as column_no_01, ' +
+      'i.part2 as column_no_02, ' +
+      'i.part3 as column_no_03, ' +
+      'i.part4 as column_no_04, ' +
+      'i.part5 as column_no_05, ' +
+      'i.part6 as column_no_06, ' +
+      'i.part7 as column_no_07, ' +
+      'i.part8 as column_no_08, ' +
+      'i.part9 as column_no_09, ' +
+      'i.part10 as column_no_10, ' +
+      'i.part11 as column_no_11, ' +
+      'i.part12 as column_no_12, ' +
+      'i.part13 as column_no_13, ' +
+      'i.part14 as column_no_14, ' +
+      'i.part15 as column_no_15, ' +
+      'i.part16 as column_no_16, ' +
+      'i.idxname as constraint_name, ' +
+      'i.idxtype as type_name,' +
+      "CASE i.idxtype WHEN 'U' THEN 'TRUE' ELSE 'FALSE' END AS is_unique, " +
+      "CASE c.constrtype WHEN 'P' THEN 'PRIMARY' WHEN 'U' THEN 'UNIQUE' WHEN 'C' THEN 'CHECK' WHEN 'N' THEN 'NOT NULL' WHEN 'T' THEN 'TABLE' WHEN 'R' THEN 'REFERENCE' END AS constraint_type " +
+      'FROM sysconstraints c ' +
       'inner join systables t on t.tabid = c.tabid ' +
-      'left join syscoldepend d on c.constid = d.constid and t.tabid = d.tabid ' +
-      'left join syscolumns cm on c.constid = cm.constid and c.tabid = cm.tabid and d.colno = cm.colno ' +
-      'left join sysreferences r on c.constid = r.constid ' +
-      'left join syschecks ch on c.constid = ch.constid ' +
+      'left join sysindexes i on t.tabid = i.tabid and i.idxname = c.idxname and t.owner = i.owner ' +
+      'left join sysreferences r on c.constrid = r.constrid ' +
+      'left join syschecks ch on c.constrid = ch.constrid ' +
       'WHERE ' + tablesCondition;
 
 
-    // const constraintsSql = `SELECT "ns"."nspname" AS "table_schema", "t"."relname" AS "table_name", "cnst"."conname" AS "constraint_name", "cnst"."consrc" AS "expression", ` +
-    //   `CASE "cnst"."contype" WHEN 'p' THEN 'PRIMARY' WHEN 'u' THEN 'UNIQUE' WHEN 'c' THEN 'CHECK' END AS "constraint_type", "a"."attname" AS "column_name" ` +
+    // const constraintsSql = `SELECT
+    // "ns"."nspname" AS "table_owner",
+    // "t"."relname" AS "table_name",
+    // "cnst"."conname" AS "constraint_name",
+    // "cnst"."consrc" AS "expression", ` +
+    // `CASE "cnst"."contype" WHEN 'p' THEN 'PRIMARY' WHEN 'u' THEN 'UNIQUE' WHEN 'c' THEN 'CHECK' END AS "constraint_type",
+    // "a"."attname" AS "column_name" ` +
     //   `FROM "pg_constraint" "cnst" ` +
     //   `INNER JOIN "pg_class" "t" ON "t"."oid" = "cnst"."conrelid" ` +
     //   `INNER JOIN "pg_namespace" "ns" ON "ns"."oid" = "cnst"."connamespace" ` +
     //   `INNER JOIN "pg_attribute" "a" ON "a"."attrelid" = "cnst"."conrelid" AND "a"."attnum" = ANY ("cnst"."conkey") ` +
     //   `WHERE "t"."relkind" = 'r' AND (${constraintsCondition})`;
 
-    // const indicesSql = `SELECT "ns"."nspname" AS "table_schema", "t"."relname" AS "table_name", "i"."relname" AS "constraint_name", "a"."attname" AS "column_name", ` +
-    //   `CASE "ix"."indisunique" WHEN 't' THEN 'TRUE' ELSE'FALSE' END AS "is_unique", pg_get_expr("ix"."indpred", "ix"."indrelid") AS "condition", ` +
+    const indicesSql = '' +
+      'SELECT  ' +
+      't.tabname as table_name, ' +
+      't.owner as table_owner, ' +
+      'i.idxname as constraint_name, ' +
+      "CASE i.idxtype WHEN 'U' THEN 'TRUE' ELSE 'FALSE' END AS is_unique, " +
+      'i.idxtype as type_name,' +
+      'i.part1 as column_no_01, ' +
+      'i.part2 as column_no_02, ' +
+      'i.part3 as column_no_03, ' +
+      'i.part4 as column_no_04, ' +
+      'i.part5 as column_no_05, ' +
+      'i.part6 as column_no_06, ' +
+      'i.part7 as column_no_07, ' +
+      'i.part8 as column_no_08, ' +
+      'i.part9 as column_no_09, ' +
+      'i.part10 as column_no_10, ' +
+      'i.part11 as column_no_11, ' +
+      'i.part12 as column_no_12, ' +
+      'i.part13 as column_no_13, ' +
+      'i.part14 as column_no_14, ' +
+      'i.part15 as column_no_15, ' +
+      'i.part16 as column_no_16 ' +
+      'FROM sysindexes i ' +
+      'inner join systables t on t.tabid = i.tabid '
+    'WHERE ' + tablesCondition;
+
+    // const indicesSql = `SELECT
+    // "ns"."nspname" AS "table_owner",
+    // "t"."relname" AS "table_name",
+    // "i"."relname" AS "constraint_name",
+    // "a"."attname" AS "column_name", ` +
+    // `CASE "ix"."indisunique" WHEN 't' THEN 'TRUE' ELSE'FALSE' END AS "is_unique",
+    // pg_get_expr("ix"."indpred", "ix"."indrelid") AS "condition", ` +
     //   `"types"."typname" AS "type_name" ` +
     //   `FROM "pg_class" "t" ` +
     //   `INNER JOIN "pg_index" "ix" ON "ix"."indrelid" = "t"."oid" ` +
@@ -1007,8 +1086,12 @@ export class InformixQueryRunner extends AiosQueryRunner {
     //   }
     //   return `("ns"."nspname" = '${schema}' AND "cl"."relname" = '${name}')`;
     // }).join(" OR ");
-    // const foreignKeysSql = `SELECT "con"."conname" AS "constraint_name", "con"."nspname" AS "table_schema", "con"."relname" AS "table_name", "att2"."attname" AS "column_name", ` +
-    //   `"ns"."nspname" AS "referenced_table_schema", "cl"."relname" AS "referenced_table_name", "att"."attname" AS "referenced_column_name", "con"."confdeltype" AS "on_delete", "con"."confupdtype" AS "on_update" ` +
+    // const foreignKeysSql = `SELECT
+    // "con"."conname" AS "constraint_name",
+    // "con"."nspname" AS "table_owner",
+    // "con"."relname" AS "table_name",
+    // "att2"."attname" AS "column_name", ` +
+    //   `"ns"."nspname" AS "referenced_table_owner", "cl"."relname" AS "referenced_table_name", "att"."attname" AS "referenced_column_name", "con"."confdeltype" AS "on_delete", "con"."confupdtype" AS "on_update" ` +
     //   `FROM ( ` +
     //   `SELECT UNNEST ("con1"."conkey") AS "parent", UNNEST ("con1"."confkey") AS "child", "con1"."confrelid", "con1"."conrelid", "con1"."conname", "con1"."contype", "ns"."nspname", "cl"."relname", ` +
     //   `CASE "con1"."confdeltype" WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END as "confdeltype", ` +
@@ -1022,182 +1105,316 @@ export class InformixQueryRunner extends AiosQueryRunner {
     //   `INNER JOIN "pg_class" "cl" ON "cl"."oid" = "con"."confrelid" ` +
     //   `INNER JOIN "pg_namespace" "ns" ON "cl"."relnamespace" = "ns"."oid" ` +
     //   `INNER JOIN "pg_attribute" "att2" ON "att2"."attrelid" = "con"."conrelid" AND "att2"."attnum" = "con"."parent"`;
-    // const [dbTables, dbColumns, dbConstraints, dbIndices, dbForeignKeys]: ObjectLiteral[][] = await Promise.all([
-    //   this.query(tablesSql),
-    //   this.query(columnsSql),
-    //   this.query(constraintsSql),
-    //   this.query(indicesSql),
-    //   this.query(foreignKeysSql),
-    // ]);
-    //
-    // // if tables were not found in the db, no need to proceed
-    // if (!dbTables.length)
-    //   return [];
-    //
-    // // create tables for loaded tables
-    // return Promise.all(dbTables.map(async dbTable => {
-    //   const table = new Table();
-    //
-    //   // We do not need to join schema name, when database is by default.
-    //   // In this case we need local variable `tableFullName` for below comparision.
-    //   const schema = dbTable["table_schema"] === currentSchema && !this.driver.options.schema ? undefined : dbTable["table_schema"];
-    //   table.name = this.driver.buildTableName(dbTable["table_name"], schema);
-    //   const tableFullName = this.driver.buildTableName(dbTable["table_name"], dbTable["table_schema"]);
-    //
-    //   // create columns from the loaded columns
-    //   table.columns = await Promise.all(dbColumns
-    //     .filter(dbColumn => this.driver.buildTableName(dbColumn["table_name"], dbColumn["table_schema"]) === tableFullName)
-    //     .map(async dbColumn => {
-    //
-    //       const columnConstraints = dbConstraints.filter(dbConstraint => {
-    //         return this.driver.buildTableName(dbConstraint["table_name"], dbConstraint["table_schema"]) === tableFullName && dbConstraint["column_name"] === dbColumn["column_name"];
-    //       });
-    //
-    //       const tableColumn = new TableColumn();
-    //       tableColumn.name = dbColumn["column_name"];
-    //       tableColumn.type = dbColumn["regtype"].toLowerCase();
-    //
-    //       if (tableColumn.type === "numeric" || tableColumn.type === "decimal" || tableColumn.type === "float") {
-    //         // If one of these properties was set, and another was not, Postgres sets '0' in to unspecified property
-    //         // we set 'undefined' in to unspecified property to avoid changing column on sync
-    //         if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
-    //           tableColumn.precision = dbColumn["numeric_precision"];
-    //         } else if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
-    //           tableColumn.precision = undefined;
-    //         }
-    //         if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
-    //           tableColumn.scale = dbColumn["numeric_scale"];
-    //         } else if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
-    //           tableColumn.scale = undefined;
-    //         }
-    //       }
-    //
-    //       if (dbColumn["data_type"].toLowerCase() === "array") {
-    //         tableColumn.isArray = true;
-    //         const type = tableColumn.type.replace("[]", "");
-    //         tableColumn.type = this.connection.driver.normalizeType({type: type});
-    //       }
-    //
-    //       if (tableColumn.type === "interval"
-    //         || tableColumn.type === "time without time zone"
-    //         || tableColumn.type === "time with time zone"
-    //         || tableColumn.type === "timestamp without time zone"
-    //         || tableColumn.type === "timestamp with time zone") {
-    //         tableColumn.precision = !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["datetime_precision"]) ? dbColumn["datetime_precision"] : undefined;
-    //       }
-    //
-    //
-    //       // check only columns that have length property
-    //       if (this.driver.withLengthColumnTypes.indexOf(tableColumn.type as ColumnType) !== -1 && dbColumn["character_maximum_length"]) {
-    //         const length = dbColumn["character_maximum_length"].toString();
-    //         tableColumn.length = !this.isDefaultColumnLength(table, tableColumn, length) ? length : "";
-    //       }
-    //       tableColumn.isNullable = dbColumn["is_nullable"] === "YES";
-    //       tableColumn.isPrimary = !!columnConstraints.find(constraint => constraint["constraint_type"] === "PRIMARY");
-    //
-    //       const uniqueConstraint = columnConstraints.find(constraint => constraint["constraint_type"] === "UNIQUE");
-    //       const isConstraintComposite = uniqueConstraint
-    //         ? !!dbConstraints.find(dbConstraint => dbConstraint["constraint_type"] === "UNIQUE"
-    //           && dbConstraint["constraint_name"] === uniqueConstraint["constraint_name"]
-    //           && dbConstraint["column_name"] !== dbColumn["column_name"])
-    //         : false;
-    //       tableColumn.isUnique = !!uniqueConstraint && !isConstraintComposite;
-    //
-    //       if (dbColumn["column_default"] !== null && dbColumn["column_default"] !== undefined) {
-    //         if (dbColumn["column_default"].replace(/"/gi, "") === `nextval('${this.buildSequenceName(table, dbColumn["column_name"], currentSchema, true)}'::regclass)`) {
-    //           tableColumn.isGenerated = true;
-    //           tableColumn.generationStrategy = "increment";
-    //
-    //         } else if (/^uuid_generate_v\d\(\)/.test(dbColumn["column_default"])) {
-    //           tableColumn.isGenerated = true;
-    //           tableColumn.generationStrategy = "uuid";
-    //
-    //         } else {
-    //           tableColumn.default = dbColumn["column_default"].replace(/::.*/, "");
-    //         }
-    //       }
-    //
-    //       tableColumn.comment = ""; // dbColumn["COLUMN_COMMENT"];
-    //       if (dbColumn["character_set_name"])
-    //         tableColumn.charset = dbColumn["character_set_name"];
-    //       if (dbColumn["collation_name"])
-    //         tableColumn.collation = dbColumn["collation_name"];
-    //       return tableColumn;
-    //     }));
-    //
-    //   // find unique constraints of table, group them by constraint name and build TableUnique.
-    //   const tableUniqueConstraints = OrmUtils.uniq(dbConstraints.filter(dbConstraint => {
-    //     return this.driver.buildTableName(dbConstraint["table_name"], dbConstraint["table_schema"]) === tableFullName
-    //       && dbConstraint["constraint_type"] === "UNIQUE";
-    //   }), dbConstraint => dbConstraint["constraint_name"]);
-    //
-    //   table.uniques = tableUniqueConstraints.map(constraint => {
-    //     const uniques = dbConstraints.filter(dbC => dbC["constraint_name"] === constraint["constraint_name"]);
-    //     return new TableUnique({
-    //       name: constraint["constraint_name"],
-    //       columnNames: uniques.map(u => u["column_name"])
-    //     });
-    //   });
-    //
-    //   // find check constraints of table, group them by constraint name and build TableCheck.
-    //   const tableCheckConstraints = OrmUtils.uniq(dbConstraints.filter(dbConstraint => {
-    //     return this.driver.buildTableName(dbConstraint["table_name"], dbConstraint["table_schema"]) === tableFullName
-    //       && dbConstraint["constraint_type"] === "CHECK";
-    //   }), dbConstraint => dbConstraint["constraint_name"]);
-    //
-    //   table.checks = tableCheckConstraints.map(constraint => {
-    //     const checks = dbConstraints.filter(dbC => dbC["constraint_name"] === constraint["constraint_name"]);
-    //     return new TableCheck({
-    //       name: constraint["constraint_name"],
-    //       columnNames: checks.map(c => c["column_name"]),
-    //       expression: constraint["expression"] // column names are not escaped, may cause problems
-    //     });
-    //   });
-    //
-    //   // find foreign key constraints of table, group them by constraint name and build TableForeignKey.
-    //   const tableForeignKeyConstraints = OrmUtils.uniq(dbForeignKeys.filter(dbForeignKey => {
-    //     return this.driver.buildTableName(dbForeignKey["table_name"], dbForeignKey["table_schema"]) === tableFullName;
-    //   }), dbForeignKey => dbForeignKey["constraint_name"]);
-    //
-    //   table.foreignKeys = tableForeignKeyConstraints.map(dbForeignKey => {
-    //     const foreignKeys = dbForeignKeys.filter(dbFk => dbFk["constraint_name"] === dbForeignKey["constraint_name"]);
-    //
-    //     // if referenced table located in currently used schema, we don't need to concat schema name to table name.
-    //     const schema = dbForeignKey["referenced_table_schema"] === currentSchema ? undefined : dbTable["referenced_table_schema"];
-    //     const referencedTableName = this.driver.buildTableName(dbForeignKey["referenced_table_name"], schema);
-    //
-    //     return new TableForeignKey({
-    //       name: dbForeignKey["constraint_name"],
-    //       columnNames: foreignKeys.map(dbFk => dbFk["column_name"]),
-    //       referencedTableName: referencedTableName,
-    //       referencedColumnNames: foreignKeys.map(dbFk => dbFk["referenced_column_name"]),
-    //       onDelete: dbForeignKey["on_delete"],
-    //       onUpdate: dbForeignKey["on_update"]
-    //     });
-    //   });
-    //
-    //   // find index constraints of table, group them by constraint name and build TableIndex.
-    //   const tableIndexConstraints = OrmUtils.uniq(dbIndices.filter(dbIndex => {
-    //     return this.driver.buildTableName(dbIndex["table_name"], dbIndex["table_schema"]) === tableFullName;
-    //   }), dbIndex => dbIndex["constraint_name"]);
-    //
-    //   table.indices = tableIndexConstraints.map(constraint => {
-    //     const indices = dbIndices.filter(index => index["constraint_name"] === constraint["constraint_name"]);
-    //     return new TableIndex(<TableIndexOptions>{
-    //       table: table,
-    //       name: constraint["constraint_name"],
-    //       columnNames: indices.map(i => i["column_name"]),
-    //       isUnique: constraint["is_unique"] === "TRUE",
-    //       where: constraint["condition"],
-    //       isSpatial: indices.every(i => this.driver.spatialTypes.indexOf(i["type_name"]) >= 0),
-    //       isFulltext: false
-    //     });
-    //   });
-    //
-    //   return table;
-    // }));
-    return [];
+
+
+    const [
+      dbTables,
+      dbColumns,
+      dbConstraints,
+      dbIndices,
+      dbForeignKeys
+    ]: ObjectLiteral[][] = await Promise.all([
+
+      this.query(tablesSql),
+      this.query(columnsSql),
+      this.query(constraintsSql),
+      this.query(indicesSql),
+      //  this.query(foreignKeysSql),
+    ]);
+
+    // if tables were not found in the db, no need to proceed
+    if (!dbTables.length)
+      return [];
+
+    // create tables for loaded tables
+    return Promise.all(dbTables.map(async dbTable => {
+      const table = new Table();
+
+      // We do not need to join schema name, when database is by default.
+      // In this case we need local variable `tableFullName` for below comparision.
+      const owner = dbTable["table_owner"];
+      table.name = this.driver.buildTableName(dbTable["table_name"], owner);
+      const tableFullName = this.driver.buildTableName(dbTable["table_name"], dbTable["table_owner"]);
+
+      // create columns from the loaded columns
+      table.columns = await Promise.all(dbColumns
+        .filter(dbColumn => this.driver.buildTableName(dbColumn["table_name"], dbColumn["table_owner"]) === tableFullName)
+        .map(async dbColumn => {
+
+          const columnConstraints = dbConstraints.filter(dbConstraint => {
+            if (this.driver.buildTableName(dbConstraint["table_name"],
+              dbConstraint["table_owner"]) === tableFullName) {
+
+              for (let i = 1; i <= 16; i++) {
+                let k = "0".repeat(2 - ((i + "").length)) + i;
+                if (dbConstraint['column_no_' + k] == 0) {
+                  return false;
+                }
+                if (dbConstraint['column_no_' + k] == dbColumn['column_no']) {
+                  return true;
+                }
+              }
+
+            }
+            return false;
+
+          });
+
+          const tableColumn = new TableColumn();
+          tableColumn.name = dbColumn["column_name"];
+          let colType = dbColumn["column_type"];
+
+          let is_unique = false;
+          let checks = {
+            0x0100: false,// null not allowed
+            0x0200: false,// Value is from a host variable
+            0x0400: false,// Float-to-decimal for networked database server
+            0x0800: false,// DISTINCT data type
+            0x1000: false, // Named ROW type
+            0x2000: false,// DISTINCT type from LVARCHAR base type
+            0x4000: false,// DISTINCT type from BOOLEAN base type
+            0x8000: false,// Collection is processed on client system
+          };
+
+          Object.keys(checks).forEach(check => {
+            if (colType & <any>check) {
+              checks[check] = true;
+              colType = colType & ~check;
+            }
+          })
+
+          if (InformixQueryRunner.typeMap[colType]) {
+            tableColumn.type = InformixQueryRunner.typeMap[colType].toLowerCase();
+            tableColumn['data_type'] = dbColumn['extended_column_label'];
+          } else {
+            let typeDesc = dbColumn['extended_column_label'] ? dbColumn['extended_column_label'].split('(', 1).shift() : null;
+            if (typeDesc) {
+              tableColumn.type = typeDesc.toLowerCase();
+              tableColumn['data_type'] = dbColumn['extended_column_label'];
+            } else {
+              throw new Error('informix: type not found for coltype = ' + colType);
+            }
+          }
+
+          if (tableColumn.type === "numeric" || tableColumn.type === "decimal" || tableColumn.type === "float") {
+            // If one of these properties was set, and another was not, Postgres sets '0' in to unspecified property
+            // we set 'undefined' in to unspecified property to avoid changing column on sync
+            if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
+              tableColumn.precision = dbColumn["numeric_precision"];
+            } else if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
+              tableColumn.precision = undefined;
+            }
+            if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
+              tableColumn.scale = dbColumn["numeric_scale"];
+            } else if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
+              tableColumn.scale = undefined;
+            }
+          }
+
+          if (tableColumn.type === "interval"
+            || tableColumn.type === "time without time zone"
+            || tableColumn.type === "time with time zone"
+            || tableColumn.type === "timestamp without time zone"
+            || tableColumn.type === "timestamp with time zone") {
+            tableColumn.precision = !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["datetime_precision"]) ? dbColumn["datetime_precision"] : undefined;
+          }
+
+          // check only columns that have length property
+          if (this.driver.withLengthColumnTypes.indexOf(tableColumn.type as ColumnType) !== -1 && (dbColumn['column_length'] || dbColumn['extended_column_length'])) {
+            const length = dbColumn['column_length'] > dbColumn['extended_column_length'] ? dbColumn['column_length'] : dbColumn['extended_column_length'];
+            tableColumn.length = !this.isDefaultColumnLength(table, tableColumn, length) ? length : "";
+          }
+
+          tableColumn.isNullable = !!columnConstraints.find(constraint => constraint["constraint_type"] === "NOT NULL");
+          tableColumn.isPrimary = !!columnConstraints.find(constraint => constraint["constraint_type"] === "PRIMARY");
+          if (tableColumn.isPrimary && tableColumn.type == 'serial') {
+            tableColumn.isGenerated = true;
+            tableColumn.generationStrategy = "increment";
+          }
+
+          const uniqueConstraint = columnConstraints.find(constraint => constraint["is_unique"] === 'TRUE');
+          const isConstraintComposite = uniqueConstraint && uniqueConstraint['column_no_02'] > 0;
+          tableColumn.isUnique = !!uniqueConstraint && !isConstraintComposite;
+
+          if (dbColumn["column_default"] !== null && dbColumn["column_default"] !== undefined) {
+            tableColumn.default = dbColumn["column_default"];
+
+          }
+
+          tableColumn.comment = ""; // dbColumn["COLUMN_COMMENT"];
+
+          return tableColumn;
+        }));
+
+
+      // find unique constraints of table, group them by constraint name and build TableUnique.
+      // TODO detect unique indexes
+      /*
+        const tableUniqueConstraints = OrmUtils.uniq(dbConstraints.filter(dbConstraint => {
+          return this.driver.buildTableName(dbConstraint["table_name"], dbConstraint["table_owner"]) === tableFullName
+            && dbConstraint["constraint_type"] === "UNIQUE";
+        }), dbConstraint => dbConstraint["constraint_name"]);
+
+        table.uniques = tableUniqueConstraints.map(constraint => {
+          const uniques = dbConstraints.filter(dbC => dbC["constraint_name"] === constraint["constraint_name"]);
+
+
+          return new TableUnique({
+            name: constraint["constraint_name"],
+            columnNames: uniques.map(u => u["column_name"])
+          });
+        });
+*/
+
+      // TODO detect check conditions
+      // find check constraints of table, group them by constraint name and build TableCheck.
+      /*
+      const tableCheckConstraints = OrmUtils.uniq(dbConstraints.filter(dbConstraint => {
+
+        return this.driver.buildTableName(dbConstraint["table_name"], dbConstraint["table_owner"]) === tableFullName
+          && dbConstraint["constraint_type"] === "CHECK";
+      }), dbConstraint => dbConstraint["constraint_name"]);
+
+      table.checks = tableCheckConstraints.map(constraint => {
+        const checks = dbConstraints.filter(dbC => dbC["constraint_name"] === constraint["constraint_name"]);
+        return new TableCheck({
+          name: constraint["constraint_name"],
+          columnNames: checks.map(c => c["column_name"]),
+          expression: constraint["expression"] // column names are not escaped, may cause problems
+        });
+      });
+*/
+
+      // TODO detect foreign keys
+      // find foreign key constraints of table, group them by constraint name and build TableForeignKey.
+      /*
+    const tableForeignKeyConstraints = OrmUtils.uniq(dbForeignKeys.filter(dbForeignKey => {
+        return this.driver.buildTableName(dbForeignKey["table_name"], dbForeignKey["table_owner"]) === tableFullName;
+      }), dbForeignKey => dbForeignKey["constraint_name"]);
+
+      table.foreignKeys = tableForeignKeyConstraints.map(dbForeignKey => {
+        const foreignKeys = dbForeignKeys.filter(dbFk => dbFk["constraint_name"] === dbForeignKey["constraint_name"]);
+
+        // if referenced table located in currently used schema, we don't need to concat schema name to table name.
+        const schema = dbForeignKey["referenced_table_owner"] === currentSchema ? undefined : dbTable["referenced_table_owner"];
+        const referencedTableName = this.driver.buildTableName(dbForeignKey["referenced_table_name"], schema);
+
+        return new TableForeignKey({
+          name: dbForeignKey["constraint_name"],
+          columnNames: foreignKeys.map(dbFk => dbFk["column_name"]),
+          referencedTableName: referencedTableName,
+          referencedColumnNames: foreignKeys.map(dbFk => dbFk["referenced_column_name"]),
+          onDelete: dbForeignKey["on_delete"],
+          onUpdate: dbForeignKey["on_update"]
+        });
+      });
+      */
+
+      // find index constraints of table, group them by constraint name and build TableIndex.
+      const tableIndexConstraints = OrmUtils.uniq(dbIndices.filter(dbIndex => {
+        return this.driver.buildTableName(dbIndex["table_name"], dbIndex["table_owner"]) === tableFullName;
+      }), dbIndex => dbIndex["constraint_name"]);
+
+      table.indices = tableIndexConstraints.map(constraint => {
+        // const indices = dbIndices.filter(index => index["constraint_name"] === constraint["constraint_name"]);
+        let colNames = [];
+        for (let i = 1; i <= 16; i++) {
+          let k = "0".repeat(2 - ((i + "").length)) + i;
+          if (constraint['column_no_' + k] == 0) {
+            break;
+          }
+          let col = dbColumns.find(c => c['table_name'] == constraint['table_name'] && c['column_no'] == constraint['column_no_' + k]);
+          ;
+          colNames.push(col['column_name']);
+        }
+
+
+        return new TableIndex(<TableIndexOptions>{
+          table: table,
+          name: constraint["constraint_name"],
+          columnNames: colNames,
+          isUnique: constraint["is_unique"] === "TRUE",
+          where: constraint["condition"],
+          isSpatial: false,
+          isFulltext: false
+        });
+      });
+
+      return table;
+    }));
+    // return [];
   }
+
+  /**
+   *   0 = CHAR
+   1 = SMALLINT
+   2 = INTEGER
+   3 = FLOAT
+   4 = SMALLFLOAT
+   5 = DECIMAL
+   6 = SERIAL 1
+   7 = DATE
+   8 = MONEY
+   9 = NULL
+   10 = DATETIME
+   11 = BYTE
+   12 = TEXT
+   13 = VARCHAR
+   14 = INTERVAL
+   15 = NCHAR
+   16 = NVARCHAR
+   17 = INT8
+   18 = SERIAL8 1
+   19 = SET
+   20 = MULTISET
+   21 = LIST
+   22 = ROW (unnamed)
+   23 = COLLECTION
+   40 = LVARCHAR fixed-length opaque types 2
+   41 = BLOB, BOOLEAN, CLOB variable-length opaque types 2
+   43 = LVARCHAR (client-side only)
+   45 = BOOLEAN
+   52 = BIGINT
+   53 = BIGSERIAL 1
+   2061 = IDSSECURITYLABEL 2, 3
+   4118 = ROW (named)
+
+   */
+
+  private static typeMap = {
+    0: 'CHAR',
+    1: 'SMALLINT',
+    2: 'INTEGER',
+    3: 'FLOAT',
+    4: 'SMALLFLOAT',
+    5: 'DECIMAL',
+    6: 'SERIAL',
+    7: 'DATE',
+    8: 'MONEY',
+    9: 'NULL',
+    10: 'DATETIME',
+    11: 'BYTE',
+    12: 'TEXT',
+    13: 'VARCHAR',
+    14: 'INTERVAL',
+    15: 'NCHAR',
+    16: 'NVARCHAR',
+    17: 'INT8',
+    18: 'SERIAL8',
+    19: 'SET',
+    20: 'MULTISET',
+    21: 'LIST',
+    22: 'ROW',
+    23: 'COLLECTION',
+    40: 'LVARCHAR',
+    41: 'BLOB',
+    45: 'BOOLEAN',
+    52: 'BIGINT',
+    53: 'BIGSERIAL',
+    2061: 'IDSSECURITYLABEL',
+    4118: 'ROW'
+  }
+
 
   /**
    * Builds create table sql.

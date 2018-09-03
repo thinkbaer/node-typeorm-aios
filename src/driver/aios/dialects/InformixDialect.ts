@@ -16,10 +16,11 @@ export class InformixDialect extends AbstractDialect {
     "character varying", "date", "datetime", "dec", "decimal",
     "double precision", "float", "int", "integer", "interval",
     "money", "nchar", "numeric", "nvarchar",
-    "real", "serial", "serial8", "smallfloat", "smallint", "text", "varchar"];
+    "real", "serial", "serial8", "smallfloat", "smallint",
+    "text", "varchar"];
 
   withLengthColumnTypes: any[] = ["character", "char",
-    "character varying", "float", "nchar", "serial", "serial8", "varchar"
+    "character varying", "float", "nchar", "serial", "serial8", "varchar","lvarchar"
   ];
 
 
@@ -60,12 +61,31 @@ export class InformixDialect extends AbstractDialect {
     if (_.isUndefined(res)) {
       return [];
     }
+
+    res.forEach(r => {
+      Object.keys(r).forEach(k => {
+        if(_.isString(r[k])){
+          r[k] = r[k].trim();
+        }
+      })
+    })
+
     return res;
   }
 
 
   createQueryRunner(driver: AiosDriver, mode: "slave" | "master"): AiosQueryRunner {
     return new InformixQueryRunner(driver, mode);
+  }
+
+
+  buildTableName(table:string,schema?:string,database?:string):string{
+    if(schema){
+      return [schema.trim(),table.trim()].join('.')
+    }else{
+      return table.trim();
+    }
+
   }
 
 

@@ -37,4 +37,5 @@ export interface IDialect {
 
   createQueryRunner(driver: AiosDriver, mode: "master" | "slave"): AiosQueryRunner;
 
+  buildTableName(tableName: string, schema: string, database: string): string;
 }

@@ -251,7 +251,7 @@ export class AiosDriver implements Driver {
    * E.g. "myDB"."mySchema"."myTable"
    */
   buildTableName(tableName: string, schema?: string, database?: string): string {
-    throw new NotYetImplementedError()
+    return this.dialect.buildTableName(tableName, schema, database);
   };
 
 

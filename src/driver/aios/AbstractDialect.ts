@@ -107,4 +107,7 @@ export abstract class AbstractDialect implements IDialect {
     throw new NotYetImplementedError();
   };
 
+  buildTableName(tableName: string, schema: string, database: string): string {
+    throw new NotYetImplementedError();
+  }
 }

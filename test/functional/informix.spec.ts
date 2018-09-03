@@ -10,6 +10,7 @@ import * as _ from "lodash";
 import {CategoryEntity} from "./test-schema";
 import {TableOptions} from "../../node_modules/typeorm/schema-builder/options/TableOptions";
 import {AiosDriver} from "../../src/driver/aios/AiosDriver";
+import {inspect} from "util";
 
 
 const DB = 'informix';
@@ -76,32 +77,39 @@ class TestSpec {
 
     res = await runner.hasColumn('iot_data_ts', 'desc');
     console.log(res)
-    expect(res).to.be.true
+    expect(res).to.be.true;
 
-    let table = new Table(<TableOptions>{
-      name: 'aios_test',
-      columns: [
-        {
-          isGenerated: true,
-          type: 'integer',
-          isPrimary: true,
-          name: 'id',
-          generationStrategy: "increment"
-        },
-        {
-          type: 'string',
-          name: 'name'
-        },
-      ]
-    })
+    let tables = await runner['loadTables'](['iot_data_ts']);
+    console.log(inspect(tables,false,10))
 
-    await driver._execute('DROP TABLE IF EXISTS ' + table.name);
 
-    res = await runner.createTable(table, true, true, true);
-    console.log(res)
-
-    res = await runner.dropTable(table);
-    console.log(res)
+    // let table = new Table(<TableOptions>{
+    //   name: 'aios_test',
+    //   columns: [
+    //     {
+    //       isGenerated: true,
+    //       type: 'integer',
+    //       isPrimary: true,
+    //       name: 'id',
+    //       generationStrategy: "increment"
+    //     },
+    //     {
+    //       type: 'string',
+    //       name: 'name'
+    //     },
+    //   ]
+    // })
+    //
+    // await driver._execute('DROP TABLE IF EXISTS ' + table.name);
+    //
+    //
+    //
+    //
+    // res = await runner.createTable(table, true, true, true);
+    // console.log(res)
+    //
+    // res = await runner.dropTable(table);
+    // console.log(res)
 
     // TODO currently not permissions
     // let tables = await driver._tables('informix');
