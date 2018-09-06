@@ -12,7 +12,8 @@ services:
     tty: true
 
   aios:
-    image: thinkbaer/aios:0.2.0
+    image: thinkbaer/aios:0.3.0
+    container_name: node_typeorm_aios
     ports:
     - 127.0.0.1:8118:8118
     links:

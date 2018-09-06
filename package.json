@@ -1,6 +1,6 @@
 {
   "name": "typeorm-aios",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -62,6 +62,7 @@
     "typescript-require": "^0.2.10"
   },
   "dependencies": {
-    "aios": "^0.1.7"
+    "lodash": "^4.17.10",
+    "aios": "^0.1.8"
   }
 }

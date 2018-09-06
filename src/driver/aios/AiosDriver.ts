@@ -15,6 +15,8 @@ import {NotYetImplementedError} from "./NotYetImplementedError";
 import {AiosDialectFactory} from "./AiosDialectFactory";
 
 import {IDialect} from "./IDialect";
+import * as _ from "lodash";
+import {OrmUtils} from "typeorm/util/OrmUtils";
 
 
 export interface ICatalog {
@@ -136,6 +138,9 @@ export class AiosDriver implements Driver {
     });
 
     this.dialect = AiosDialectFactory.$().get(this.options.dialect);
+    this.dialect.prepare(this);
+
+
   }
 
 
@@ -172,6 +177,7 @@ export class AiosDriver implements Driver {
         reject(e);
       }
     }).then(async (res) => {
+      await this.dialect.afterConnect(this);
       this.catalogs = await this._catalogs();
       return res;
     })
@@ -179,6 +185,10 @@ export class AiosDriver implements Driver {
 
   isConnected(): boolean {
     return this.connected;
+  }
+
+  isReadonly() {
+    return _.has(this.options, 'readonly') && this.options.readonly;
   }
 
   /**
@@ -192,28 +202,14 @@ export class AiosDriver implements Driver {
    * Closes connection with database and releases all resources.
    */
   disconnect(): Promise<void> {
-    /*
-    return new Promise<void>((resolve, reject) => {
-      try {
-        if(this.dataSource){
-          this.dataSource.
-
-        }else{
-          this.connected = false;
-        }
-      } catch (e) {
-        reject(e);
-      }
-    })
-    */
-    throw new NotYetImplementedError();
+    return Promise.resolve()
   };
 
   /**
    * Synchronizes database schema (creates tables, indices, etc).
    */
   createSchemaBuilder(): SchemaBuilder {
-    throw new NotYetImplementedError()
+    return this.dialect.createSchemaBuilder(this);
   };
 
   /**
@@ -259,7 +255,8 @@ export class AiosDriver implements Driver {
    * Prepares given value to a value to be persisted, based on its column type and metadata.
    */
   preparePersistentValue(value: any, column: ColumnMetadata): any {
-    throw new NotYetImplementedError()
+    return this.dialect.preparePersistentValue(value, column);
+
   };
 
   /**
@@ -287,7 +284,7 @@ export class AiosDriver implements Driver {
    * Normalizes "default" value of the column.
    */
   normalizeDefault(columnMetadata: ColumnMetadata): string {
-    throw new NotYetImplementedError()
+    return this.dialect.normalizeDefault(columnMetadata);
   };
 
 
@@ -295,7 +292,7 @@ export class AiosDriver implements Driver {
    * Normalizes "isUnique" value of the column.
    */
   normalizeIsUnique(column: ColumnMetadata): boolean {
-    throw new NotYetImplementedError()
+    return this.dialect.normalizeIsUnique(column);
   };
 
 
@@ -303,14 +300,14 @@ export class AiosDriver implements Driver {
    * Calculates column length taking into account the default length values.
    */
   getColumnLength(column: ColumnMetadata): string {
-    throw new NotYetImplementedError()
+    return this.dialect.getColumnLength(column);
   };
 
   /**
    * Normalizes "default" value of the column.
    */
   createFullType(column: TableColumn): string {
-    throw new NotYetImplementedError()
+    return this.dialect.createFullType(column);
   };
 
   /**
@@ -335,7 +332,17 @@ export class AiosDriver implements Driver {
    * Creates generated map of values generated or returned by database after INSERT query.
    */
   createGeneratedMap(metadata: EntityMetadata, insertResult: any): ObjectLiteral | undefined {
-    throw new NotYetImplementedError()
+
+    if (!insertResult)
+      return undefined;
+
+    return Object.keys(insertResult).reduce((map, key) => {
+      const column = metadata.findColumnWithDatabaseName(key);
+      if (column) {
+        OrmUtils.mergeDeep(map, column.createValueMap(insertResult[key]));
+      }
+      return map;
+    }, {} as ObjectLiteral);
   };
 
   /**
@@ -343,33 +350,40 @@ export class AiosDriver implements Driver {
    * and returns only changed.
    */
   findChangedColumns(tableColumns: TableColumn[], columnMetadatas: ColumnMetadata[]): ColumnMetadata[] {
-    throw new NotYetImplementedError()
+    return this.dialect.findChangedColumns(tableColumns, columnMetadatas);
   };
+
 
   /**
    * Returns true if driver supports RETURNING / OUTPUT statement.
    */
   isReturningSqlSupported(): boolean {
-    throw new NotYetImplementedError()
+    return false;
+    //throw new NotYetImplementedError()
   };
 
   /**
    * Returns true if driver supports uuid values generation on its own.
    */
   isUUIDGenerationSupported(): boolean {
-    throw new NotYetImplementedError()
+    return false;
+
+    // TODO throw new NotYetImplementedError()
   };
 
   /**
    * Creates an escaped parameter.
    */
   createParameter(parameterName: string, index: number): string {
-    throw new NotYetImplementedError()
+    return this.dialect.createParameter(parameterName, index);
   }
 
 
   _executeBatch(queryies: string[]): Promise<any> {
     return new Promise<any[]>(async (resolve, reject) => {
+      if (this.isReadonly()) {
+        return reject(new Error(`can't executeQueries in read only mode.`));
+      }
       await this.connect();
       if (this.connected) {
         // TODO format query!
@@ -377,7 +391,7 @@ export class AiosDriver implements Driver {
           if (err) {
             reject(err);
           } else {
-            resolve(res);
+            resolve(res.batchResults);
           }
         });
       } else {
@@ -387,18 +401,44 @@ export class AiosDriver implements Driver {
   }
 
 
-  _execute(query: string): Promise<any> {
+  _execute(query: string, parameters?: any[]): Promise<any> {
     return new Promise<any[]>(async (resolve, reject) => {
+      if (this.isReadonly()) {
+        return reject(new Error(`can't executeQueries in read only mode.`));
+      }
       await this.connect();
       if (this.connected) {
-        console.log(query);
+
         // TODO format query!
-        this.dataSource.execute(query, (err: Error, res: any) => {
+        const _query = this.dialect.buildQuery(query, parameters);
+        this.dataSource.execute(_query, (err: Error, res: any) => {
           if (err != null) {
             reject(err);
           } else {
             resolve(res);
+          }
+        })
+      } else {
+        reject(new Error('no connection to aios'))
+      }
+    });
+  }
 
+  _update(query: string, parameters?: any[]): Promise<any> {
+    return new Promise<any[]>(async (resolve, reject) => {
+      if (this.isReadonly()) {
+        return reject(new Error(`can't executeQueries in read only mode.`));
+      }
+      await this.connect();
+      if (this.connected) {
+
+        // TODO format query!
+        const _query = this.dialect.buildQuery(query, parameters);
+        this.dataSource.update(_query, (err: Error, res: any) => {
+          if (err != null) {
+            reject(err);
+          } else {
+            resolve(res.data);
           }
         })
       } else {
@@ -409,11 +449,14 @@ export class AiosDriver implements Driver {
 
   _query(query: string, parameters?: any[]): Promise<any> {
     return new Promise<any[]>(async (resolve, reject) => {
+      if (this.isReadonly() && /select/.test(query.toLowerCase())) {
+        return reject(new Error(`can't executeQueries in read only mode. ` + query));
+      }
       await this.connect();
       if (this.connected) {
         // TODO format query!
-        console.log(query);
-        this.dataSource.query(query, (err: Error, res: any) => {
+        const _query = this.dialect.buildQuery(query, parameters);
+        this.dataSource.query(_query, (err: Error, res: any) => {
           if (err) {
             reject(err);
           } else {
@@ -449,9 +492,9 @@ export class AiosDriver implements Driver {
     return new Promise<any[]>(async (resolve, reject) => {
       await this.connect();
       if (this.isConnected()) {
-        let tables = []
+        let tables = [];
         if (catalog) {
-          tables.push(catalog)
+          tables.push(catalog);
           if (table) {
             tables.push(table)
           }

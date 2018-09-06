@@ -1,11 +1,12 @@
 import {AbstractDialect} from "../AbstractDialect";
 import {ColumnType, EntityManager, ObjectType, QueryRunner, SelectQueryBuilder} from "typeorm";
-import {HsqlDbSelectQueryBuilder} from "./HsqlDbSelectQueryBuilder";
 import {InformixSelectQueryBuilder} from "./InformixSelectQueryBuilder";
 import * as _ from "lodash";
 import {InformixQueryRunner} from "./InformixQueryRunner";
 import {AiosQueryRunner} from "../AiosQueryRunner";
 import {AiosDriver} from "../AiosDriver";
+import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
+import {InformixNamingStrategy} from "./InformixNamingStrategy";
 
 
 export class InformixDialect extends AbstractDialect {
@@ -15,35 +16,24 @@ export class InformixDialect extends AbstractDialect {
     "bigint", "bigserial", "byte", "bson", "json", "character", "char",
     "character varying", "date", "datetime", "dec", "decimal",
     "double precision", "float", "int", "integer", "interval",
-    "money", "nchar", "numeric", "nvarchar",
+    "money", "nchar", "numeric", "nvarchar", "lvarchar",
     "real", "serial", "serial8", "smallfloat", "smallint",
     "text", "varchar"];
 
   withLengthColumnTypes: any[] = ["character", "char",
-    "character varying", "float", "nchar", "serial", "serial8", "varchar","lvarchar"
+    "character varying", "float", "nchar", "varchar", "lvarchar"
   ];
 
 
-  normalizeType(column: { type?: ColumnType | string; length?: number | string; precision?: number | null; scale?: number; isArray?: boolean }): string {
-    if (column.type === Number || column.type === "int") {
-      return "integer";
-
-    } else if (column.type === String) {
-      return "varchar";
-
-    } else if (column.type === Date) {
-      return "datetime";
-
-    } else if (column.type === Boolean) {
-      return "boolean";
-
-    } else if (column.type === "uuid") {
-      return "varchar";
-
-    } else {
-      return column.type as string || "";
-    }
+  prepare(driver:AiosDriver){
+    // For schema builder
+    (<any>driver.options).schema = driver.options.user;
   }
+
+  afterConnect(driver:AiosDriver){
+    (<any>driver.connection)['namingStrategy'] = new InformixNamingStrategy();
+  }
+
 
   createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity> {
     const connection = entityManager.connection;
@@ -64,11 +54,11 @@ export class InformixDialect extends AbstractDialect {
 
     res.forEach(r => {
       Object.keys(r).forEach(k => {
-        if(_.isString(r[k])){
+        if (_.isString(r[k])) {
           r[k] = r[k].trim();
         }
       })
-    })
+    });
 
     return res;
   }
@@ -79,13 +69,68 @@ export class InformixDialect extends AbstractDialect {
   }
 
 
-  buildTableName(table:string,schema?:string,database?:string):string{
-    if(schema){
-      return [schema.trim(),table.trim()].join('.')
-    }else{
+  buildTableName(table: string, schema?: string, database?: string): string {
+    if (schema) {
+      return [schema.trim(), table.trim()].join('.')
+    } else {
       return table.trim();
     }
 
+  }
+
+
+  normalizeType(column: { type?: ColumnType | string; length?: number | string; precision?: number | null; scale?: number; isArray?: boolean }): string {
+    if(column instanceof  ColumnMetadata){
+      if(column.type === Number){
+        if(column.isPrimary && column.isGenerated){
+          return 'serial';
+        }
+      }
+    }
+
+    if (column.type === Number || column.type === "int") {
+      return "integer";
+
+    } else if (column.type === String || column.type == 'text') {
+      // TODO workaround to text which are blobs limit to 32kb
+      return "lvarchar";
+
+    } else if (column.type === Date) {
+      return "datetime";
+
+    } else if (column.type === Boolean) {
+      return "boolean";
+
+    } else {
+      return column.type as string || "";
+    }
+  }
+
+
+  /**
+   * Normalizes "default" value of the column.
+   */
+  normalizeDefault(columnMetadata: ColumnMetadata): string {
+    const defaultValue = columnMetadata.default;
+
+    if (typeof defaultValue === "number") {
+      return "" + defaultValue;
+
+    } else if (typeof defaultValue === "boolean") {
+      return defaultValue === true ? "true" : "false";
+
+    } else if (typeof defaultValue === "function") {
+      return defaultValue();
+
+    } else if (typeof defaultValue === "string") {
+      return `'${defaultValue}'`;
+
+    } else if (typeof defaultValue === "object") {
+      return `'${JSON.stringify(defaultValue)}'`;
+
+    } else {
+      return defaultValue;
+    }
   }
 
 

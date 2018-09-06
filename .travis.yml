@@ -20,4 +20,5 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - cd docker && docker-compose up
+  - sleep 60
 

@@ -22,9 +22,9 @@ DriverFactory.prototype.create = function (connection: Connection): Driver {
     const type = connection.options.type as string;
     if(type == 'aios'){
         return new AiosDriver(connection);
-    };
-    return driverFactoryCreate.call(this,connection);
-}
+    }
+  return driverFactoryCreate.call(this,connection);
+};
 
 export declare type ConnectionOptions = MysqlConnectionOptions | PostgresConnectionOptions | SqliteConnectionOptions | SqlServerConnectionOptions | OracleConnectionOptions | CordovaConnectionOptions | ReactNativeConnectionOptions | SqljsConnectionOptions | MongoConnectionOptions | AiosConnectionOptions;
 export declare type DatabaseType = "mysql" | "postgres" | "mariadb" | "sqlite" | "cordova" | "react-native" | "sqljs" | "oracle" | "mssql" | "mongodb" | "aios";
@@ -34,7 +34,7 @@ const entityManagerFactoryCreate = EntityManagerFactory.prototype.create;
 EntityManagerFactory.prototype.create = function (connection: Connection, queryRunner?: QueryRunner): EntityManager {
   if(connection.driver instanceof AiosDriver){
     return new AiosEntityManager(connection,queryRunner);
-  };
+  }
   return entityManagerFactoryCreate.call(this,connection);
-}
+};
 

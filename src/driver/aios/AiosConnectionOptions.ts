@@ -25,5 +25,9 @@ export interface AiosConnectionOptions extends BaseConnectionOptions {
 
   connectionTimeout?: number;
 
+  readonly?: boolean;
+
+
+
 
 }

@@ -78,14 +78,14 @@ export class HsqlDbDialect extends AbstractDialect {
   }
 
   processResultSet(res: any[]): any[] {
-    let _res: any[] = []
+    let _res: any[] = [];
     res.forEach(r => {
-      let _r: any = {}
+      let _r: any = {};
       _.keys(r).forEach(k => {
         _r[k.toLocaleLowerCase()] = r[k];
-      })
+      });
       _res.push(_r);
-    })
+    });
     return _res;
   }
 

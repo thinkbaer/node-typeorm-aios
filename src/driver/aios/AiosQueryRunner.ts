@@ -29,6 +29,10 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
 
+  isReadonly() {
+    return _.has(this.driver.options, 'readonly') && this.driver.options.readonly;
+  }
+
   addColumn(table: Table | string, column: TableColumn): Promise<void> {
     throw new NotYetImplementedError();
   }
@@ -54,11 +58,11 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
   commitTransaction(): Promise<void> {
-    throw new NotYetImplementedError();
+    return Promise.resolve();// TODO throw new NotYetImplementedError();
   }
 
   async connect(): Promise<any> {
-    await this.driver.connect()
+    await this.driver.connect();
     return this.driver.isConnected();
 
   }
@@ -206,7 +210,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    * Checks if schema with the given name exist.
    */
   async hasSchema(schema: string): Promise<boolean> {
-    let schemas = await this.getSchemas()
+    let schemas = await this.getSchemas();
     return schemas.indexOf(schema) !== -1;
   }
 
@@ -230,7 +234,6 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
 
   renameColumn(table: Table | string, oldColumnOrName: TableColumn | string, newColumnOrName: TableColumn | string): Promise<void> {
     throw new NotYetImplementedError();
-    ;
   }
 
   renameTable(oldTableOrName: Table | string, newTableName: string): Promise<void> {
@@ -238,12 +241,13 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
   rollbackTransaction(): Promise<void> {
-    throw new NotYetImplementedError();
+    // TODO throw new NotYetImplementedError();
+    return Promise.resolve()
   }
 
   startTransaction(): Promise<void> {
-    throw new NotYetImplementedError();
-
+    // TODO throw new NotYetImplementedError();
+    return Promise.resolve()
   }
 
   stream(query: string, parameters?: any[], onEnd?: Function, onError?: Function): Promise<ReadStream> {
@@ -255,8 +259,15 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
 
   }
 
-  query(query: string, parameters?: any[]): Promise<any> {
+  async query(query: string, parameters?: any[]): Promise<any> {
+    if (!/select/.test(query.toLowerCase())) {
+      if (/^.*(insert.into|update.)/.test(query.toLowerCase())) {
+        return this.driver._update(query, parameters);
+      }
+      return this.driver._execute(query, parameters);
+    }
     return this.driver._query(query, parameters);
+
   }
 
 
@@ -264,19 +275,24 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    * Executes sql used special for schema build.
    */
   protected async _executeQueries(upQueries: string | string[], downQueries: string | string[]): Promise<void> {
+    console.log(upQueries, downQueries)
     if (typeof upQueries === "string")
       upQueries = [upQueries];
     if (typeof downQueries === "string")
       downQueries = [downQueries];
 
+    /*
     this.sqlInMemory.upQueries.push(...upQueries);
     this.sqlInMemory.downQueries.push(...downQueries);
 
     // if sql-in-memory mode is enabled then simply store sql in memory and return
     if (this.sqlMemoryMode === true)
       return Promise.resolve() as Promise<any>;
+*/
+    let queries = [...upQueries];
+    console.log('Q', queries);
 
-    await PromiseUtils.runInSequence(upQueries, upQuery => this.driver._execute(upQuery));
+    await this.driver._executeBatch(queries);
   }
 
 }

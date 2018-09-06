@@ -1,13 +1,13 @@
 import {expect} from 'chai';
 import {suite, test, timeout} from 'mocha-typescript';
-import {Connection, createConnection, DatabaseType, Driver, EntitySchema, Table} from 'typeorm';
+import {Connection, createConnection, DatabaseType, Driver, EntitySchema, Table, TableColumn} from 'typeorm';
 import {AiosConnectionOptions} from "../../src/driver/aios/AiosConnectionOptions";
 
 import '../../src/integrate';
 import {AiosQueryRunner} from "../../src/driver/aios/AiosQueryRunner";
 import {EntitySchemaOptions} from "../../node_modules/typeorm/entity-schema/EntitySchemaOptions";
 import * as _ from "lodash";
-import {CategoryEntity} from "./test-schema";
+import {Car, Category, CategoryEntity} from "./test-schema";
 import {TableOptions} from "../../node_modules/typeorm/schema-builder/options/TableOptions";
 import {AiosDriver} from "../../src/driver/aios/AiosDriver";
 import {inspect} from "util";
@@ -35,7 +35,7 @@ const aiosConfigTemplate: AiosConnectionOptions = {
 class TestSpec {
 
 
-  @test.only
+  @test
   async 'connect / db information / disconnect'() {
     let aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
@@ -51,116 +51,316 @@ class TestSpec {
     let catalogs = await driver._catalogs();
     expect(catalogs).to.deep.eq(driver.catalogs);
 
-
     let res: any = await runner.hasDatabase('iot');
-    console.log(res)
     expect(res).to.be.true;
+
     res = await runner.hasDatabase('iot2');
-    console.log(res)
     expect(res).to.be.false;
+
     res = await runner.hasSchema('informix');
-    console.log(res)
     expect(res).to.be.true;
+
     res = await runner.hasSchema('informix2');
-    console.log(res)
     expect(res).to.be.false;
+
     res = await runner.getDatabases();
-    console.log(res)
     expect(res).to.include('iot');
+
     res = await runner.getSchemas();
-    console.log(res)
     expect(res).to.include('informix');
 
     res = await runner.hasTable('iot_data_ts');
-    console.log(res)
-    expect(res).to.be.true
+    expect(res).to.be.true;
 
     res = await runner.hasColumn('iot_data_ts', 'desc');
-    console.log(res)
     expect(res).to.be.true;
 
     let tables = await runner['loadTables'](['iot_data_ts']);
-    console.log(inspect(tables,false,10))
+    expect(tables).to.have.length(1);
 
+    let table = tables.shift();
+    let _table = JSON.parse(JSON.stringify(table));
+    expect(_table).to.deep.eq({
+      columns:
+        [
+          {
+          isNullable: true,
+          isGenerated: false,
+          isPrimary: true,
+          isUnique: false,
+          isArray: false,
+          length: '',
+          zerofill: false,
+          unsigned: false,
+          name: 'id',
+          no: 1,
+          type: 'int8',
+          data_type: null,
+          comment: ''
+        }, {
+          isNullable: true,
+          isGenerated: false,
+          isPrimary: false,
+          isUnique: false,
+          isArray: false,
+          length: "128",
+          zerofill: false,
+          unsigned: false,
+          name: 'desc',
+          no: 2,
+          type: 'varchar',
+          data_type: null,
+          comment: ''
+        }, {
+          isNullable: true,
+          isGenerated: false,
+          isPrimary: false,
+          isUnique: false,
+          isArray: false,
+          length: "2048",
+          zerofill: false,
+          unsigned: false,
+          name: 'readings',
+          no: 3,
+          type: 'lvarchar',
+          data_type: 'timeseries(iot_data_t)',
+          comment: ''
+        }],
+      indices:
+        [],
+      foreignKeys: [],
+      uniques: [],
+      checks: [],
+      justCreated: false,
+      name: 'informix.iot_data_ts'
+    });
 
-    // let table = new Table(<TableOptions>{
-    //   name: 'aios_test',
-    //   columns: [
-    //     {
-    //       isGenerated: true,
-    //       type: 'integer',
-    //       isPrimary: true,
-    //       name: 'id',
-    //       generationStrategy: "increment"
-    //     },
-    //     {
-    //       type: 'string',
-    //       name: 'name'
-    //     },
-    //   ]
-    // })
-    //
-    // await driver._execute('DROP TABLE IF EXISTS ' + table.name);
-    //
-    //
-    //
-    //
-    // res = await runner.createTable(table, true, true, true);
-    // console.log(res)
-    //
-    // res = await runner.dropTable(table);
-    // console.log(res)
-
-    // TODO currently not permissions
-    // let tables = await driver._tables('informix');
-    // console.log('tables',tables);
-
-    /*
-        try {
-          // currently not implemented
-          // await connection.close();
-        } catch (e) {
-          // TODO disconnect must be implemented in aios
-          console.error(e);
-        }
-        */
+    await connection.close();
   }
 
 
   @test
-  async 'create table'() {
+  async 'create table / drop table'() {
+
     let aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-
+    let driver: AiosDriver = <AiosDriver>connection.driver;
     let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
 
-    let table: Table = new Table(<TableOptions>{
-      name: 'car',
+    let tableDef = new Table(<TableOptions>{
+      name: 'aios_test',
       columns: [
         {
           name: 'id',
-          type: 'int',
-          isPrimary: true,
+          type: 'integer',
           isGenerated: true,
-          generatedType: "STORED",
+          isPrimary: true,
           generationStrategy: "increment"
         },
         {
-          name: 'key',
+          name: 'name',
           type: 'string',
+          length: 128
         },
-        {
-          name: 'value',
-          type: 'string',
-        }
       ]
     });
 
-    await runner.createTable(table);
+    let res: any = await driver._execute('DROP TABLE IF EXISTS ' + tableDef.name);
+    expect(res.affected).to.be.eq(0);
 
+    await runner.createTable(tableDef, true, true, true);
+    let table = await runner.getTable(tableDef.name);
+    let _table = JSON.parse(JSON.stringify(table));
+    expect(_table).to.deep.eq({
+      columns:
+        [
+          {
+            isNullable: false,
+            isGenerated: true,
+            isPrimary: true,
+            isUnique: false,
+            isArray: false,
+            length: "",
+            zerofill: false,
+            unsigned: false,
+            no: 1,
+            name: 'id',
+            type: 'serial',
+            data_type: null,
+            generationStrategy: 'increment',
+            comment: ''
+          },
+          {
+            isNullable: false,
+            isGenerated: false,
+            isPrimary: false,
+            isUnique: false,
+            isArray: false,
+            length: "128",
+            zerofill: false,
+            unsigned: false,
+            no: 2,
+            name: 'name',
+            type: 'lvarchar',
+            data_type: null,
+            comment: ''
+          }],
+      indices:
+        [],
+      foreignKeys: [],
+      uniques: [],
+      checks: [],
+      justCreated: false,
+      name: 'informix.aios_test'
+    });
+
+
+    await runner.dropTable(tableDef);
+    res = await runner.hasTable(tableDef.name);
+    expect(res).to.be.false;
+
+    await connection.close();
+  }
+
+  @test
+  async 'add / change / rename / drop column'() {
+
+    let aiosConfig = _.clone(aiosConfigTemplate);
+    const connection = await createConnection(<any>aiosConfig);
+    expect(connection).to.not.be.null;
+
+    let driver: AiosDriver = <AiosDriver>connection.driver;
+    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+
+    let tableDef = new Table(<TableOptions>{
+      name: 'aios_test',
+      columns: [
+        {
+          name: 'id',
+          type: 'integer',
+          isGenerated: true,
+          isPrimary: true,
+          generationStrategy: "increment"
+        },
+        {
+          name: 'name',
+          type: 'string',
+          length: 128
+        },
+      ]
+    });
+
+    let res: any = await driver._execute('DROP TABLE IF EXISTS ' + tableDef.name);
+    expect(res.affected).to.be.eq(0);
+
+    await runner.createTable(tableDef, true, true, true);
+
+    let column = new TableColumn({
+      name: 'value',
+      type: 'string',
+      length: '128'
+
+    });
+
+    let newColumn = new TableColumn({
+      name: 'value',
+      type: 'string',
+      length: '64',
+      isNullable: true,
+      isUnique: true
+    });
+
+    let newColumn2 = new TableColumn({
+      name: 'value_new',
+      type: 'string',
+      length: '64',
+      isNullable: false,
+      isUnique: false
+    });
+
+
+    await runner.addColumn(tableDef.name, column);
+    res = await runner.hasColumn(tableDef.name, column.name);
+    expect(res).to.be.true;
+
+    await runner.changeColumn(tableDef.name, column, newColumn);
+    res = await runner.hasColumn(tableDef.name, column.name);
+    expect(res).to.be.true;
+
+    await runner.changeColumn(tableDef.name, newColumn, newColumn2);
+    res = await runner.hasColumn(tableDef.name, newColumn2.name);
+    expect(res).to.be.true;
+
+    await runner.dropColumn(tableDef.name, newColumn2.name);
+    res = await runner.hasColumn(tableDef.name, newColumn2.name);
+    expect(res).to.be.false;
+
+
+    await runner.dropTable(tableDef);
+    res = await runner.hasTable(tableDef.name);
+    expect(res).to.be.false;
+
+    await connection.close();
+  }
+
+
+  @test
+  async 'crud'() {
+
+    let aiosConfig = _.clone(aiosConfigTemplate);
+    (<any>aiosConfig).entities = [Car, Category];
+    (<any>aiosConfig).synchronize = true;
+
+    const connection = await createConnection(<any>aiosConfig);
+    expect(connection).to.not.be.null;
+
+    let driver: AiosDriver = <AiosDriver>connection.driver;
+    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+
+    let categories = [];
+
+    let category = new Category();
+    category.name = 'Truck';
+    categories.push(category);
+
+    category = new Category();
+    category.name = 'SUV';
+    categories.push(category);
+
+    category = new Category();
+    category.name = 'Van';
+    categories.push(category);
+
+    categories = await connection.createEntityManager().save(categories);
+    expect(categories).to.have.length(3);
+    expect(categories.filter(x => _.has(x, 'id'))).to.have.length(3);
+
+    let car = new Car();
+    car.name = 'V70';
+    car.label = 'Volvo';
+    car.categories = category;
+    let cars = await connection.createEntityManager().save([car]);
+    expect(cars).to.have.length(1);
+    expect(cars.filter(x => _.has(x, 'id'))).to.have.length(1);
+
+    let _cars = await connection.getRepository(Car).createQueryBuilder().offset(1).limit(1).getMany();
+    expect(_cars).to.have.length(1);
+
+    _cars = await connection.getRepository(Car).findByIds([1, 2], {relations: ['categories']});
+    expect(_cars).to.have.length(2);
+    expect(_cars.filter(x => _.has(x, 'categories.id'))).to.have.length(2);
+
+    let q = await connection.getRepository(Category).createQueryBuilder('category');
+    q = q.leftJoin(Car, 'car','category.id = car.categories_id');
+    q.limit(3);
+    let categories2 = await q.getRawMany();
+    expect(categories2).to.have.length(3);
+    expect(categories2.filter(x => _.has(x, 'category_id'))).to.have.length(3);
+
+
+    await connection.close();
   }
 
 }
-

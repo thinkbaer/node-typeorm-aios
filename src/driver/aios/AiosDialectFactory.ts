@@ -21,8 +21,8 @@ export class AiosDialectFactory {
   }
 
   constructor(){
-    this.register(new HsqlDbDialect());
-    this.register(new SqliteDialect());
+    //this.register(new HsqlDbDialect());
+    //this.register(new SqliteDialect());
     this.register(new InformixDialect());
   }
 
