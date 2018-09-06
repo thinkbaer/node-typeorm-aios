@@ -84,20 +84,20 @@ class TestSpec {
       columns:
         [
           {
-          isNullable: true,
-          isGenerated: false,
-          isPrimary: true,
-          isUnique: false,
-          isArray: false,
-          length: '',
-          zerofill: false,
-          unsigned: false,
-          name: 'id',
-          no: 1,
-          type: 'int8',
-          data_type: null,
-          comment: ''
-        }, {
+            isNullable: true,
+            isGenerated: false,
+            isPrimary: true,
+            isUnique: false,
+            isArray: false,
+            length: '',
+            zerofill: false,
+            unsigned: false,
+            name: 'id',
+            no: 1,
+            type: 'int8',
+            data_type: null,
+            comment: ''
+          }, {
           isNullable: true,
           isGenerated: false,
           isPrimary: false,
@@ -341,9 +341,18 @@ class TestSpec {
     car.name = 'V70';
     car.label = 'Volvo';
     car.categories = category;
-    let cars = await connection.createEntityManager().save([car]);
-    expect(cars).to.have.length(1);
-    expect(cars.filter(x => _.has(x, 'id'))).to.have.length(1);
+
+    let cars: any[] = [car];
+
+    car = new Car();
+    car.name = '116d';
+    car.label = 'BMW';
+    car.categories = category;
+    cars.push(car);
+
+    cars = await connection.createEntityManager().save(cars);
+    expect(cars).to.have.length(2);
+    expect(cars.filter(x => _.has(x, 'id'))).to.have.length(2);
 
     let _cars = await connection.getRepository(Car).createQueryBuilder().offset(1).limit(1).getMany();
     expect(_cars).to.have.length(1);
@@ -353,7 +362,7 @@ class TestSpec {
     expect(_cars.filter(x => _.has(x, 'categories.id'))).to.have.length(2);
 
     let q = await connection.getRepository(Category).createQueryBuilder('category');
-    q = q.leftJoin(Car, 'car','category.id = car.categories_id');
+    q = q.leftJoin(Car, 'car', 'category.id = car.categories_id');
     q.limit(3);
     let categories2 = await q.getRawMany();
     expect(categories2).to.have.length(3);

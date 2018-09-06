@@ -27,8 +27,26 @@
     "database",
     "datasources",
     "typeorm",
-    "informix"
+    "informix",
+    "hsqldb"
   ],
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "tmp/",
+      "build/"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "sourceMap": true,
+    "instrument": true,
+    "cache": false
+  },
   "devDependencies": {
     "@types/chai": "^4.1.3",
     "@types/deepmerge": "^2.1.0",
