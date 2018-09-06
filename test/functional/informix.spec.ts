@@ -368,6 +368,12 @@ class TestSpec {
     expect(categories2).to.have.length(3);
     expect(categories2.filter(x => _.has(x, 'category_id'))).to.have.length(3);
 
+    let count = await connection.getRepository(Category).count();
+    let deleteResult = await connection.getRepository(Category).remove([categories.shift()]);
+    expect(deleteResult).to.have.length(1);
+    expect(deleteResult.filter(x => _.isUndefined(x['id']))).to.have.length(1);
+    let countAfter = await connection.getRepository(Category).count();
+    expect(countAfter).to.be.eq(count - 1);
 
     await connection.close();
   }
