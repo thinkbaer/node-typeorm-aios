@@ -95,7 +95,6 @@ export abstract class AbstractDialect implements IDialect {
     if (_.isArray(parameters) && parameters.length > 0) {
       parameters.map((p: string, idx: number) => str = str.replace('$' + (idx + 1), `'${this.escapeValue(p)}'`))
     }
-    console.log(str);
     return str;
   }
 

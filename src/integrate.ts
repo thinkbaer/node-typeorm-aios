@@ -1,16 +1,6 @@
 import {AiosDriver} from "./driver/aios/AiosDriver";
 import {Connection, Driver, EntityManager, QueryRunner} from "typeorm";
 import {DriverFactory} from "typeorm/driver/DriverFactory";
-import {MysqlConnectionOptions} from "typeorm/driver/mysql/MysqlConnectionOptions";
-import {PostgresConnectionOptions} from "typeorm/driver/postgres/PostgresConnectionOptions";
-import {SqliteConnectionOptions} from "typeorm/driver/sqlite/SqliteConnectionOptions";
-import {SqlServerConnectionOptions} from "typeorm/driver/sqlserver/SqlServerConnectionOptions";
-import {OracleConnectionOptions} from "typeorm/driver/oracle/OracleConnectionOptions";
-import {CordovaConnectionOptions} from "typeorm/driver/cordova/CordovaConnectionOptions";
-import {ReactNativeConnectionOptions} from "typeorm/driver/react-native/ReactNativeConnectionOptions";
-import {SqljsConnectionOptions} from "typeorm/driver/sqljs/SqljsConnectionOptions";
-import {MongoConnectionOptions} from "typeorm/driver/mongodb/MongoConnectionOptions";
-import {AiosConnectionOptions} from "./driver/aios/AiosConnectionOptions";
 import {EntityManagerFactory} from "typeorm/entity-manager/EntityManagerFactory";
 import {AiosEntityManager} from "./driver/aios/AiosEntityManager";
 
@@ -25,9 +15,6 @@ DriverFactory.prototype.create = function (connection: Connection): Driver {
     }
   return driverFactoryCreate.call(this,connection);
 };
-
-export declare type ConnectionOptions = MysqlConnectionOptions | PostgresConnectionOptions | SqliteConnectionOptions | SqlServerConnectionOptions | OracleConnectionOptions | CordovaConnectionOptions | ReactNativeConnectionOptions | SqljsConnectionOptions | MongoConnectionOptions | AiosConnectionOptions;
-export declare type DatabaseType = "mysql" | "postgres" | "mariadb" | "sqlite" | "cordova" | "react-native" | "sqljs" | "oracle" | "mssql" | "mongodb" | "aios";
 
 
 const entityManagerFactoryCreate = EntityManagerFactory.prototype.create;

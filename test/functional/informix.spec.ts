@@ -1,16 +1,14 @@
 import {expect} from 'chai';
 import {suite, test, timeout} from 'mocha-typescript';
-import {Connection, createConnection, DatabaseType, Driver, EntitySchema, Table, TableColumn} from 'typeorm';
+import {createConnection, DatabaseType, Table, TableColumn} from 'typeorm';
 import {AiosConnectionOptions} from "../../src/driver/aios/AiosConnectionOptions";
 
 import '../../src/integrate';
 import {AiosQueryRunner} from "../../src/driver/aios/AiosQueryRunner";
-import {EntitySchemaOptions} from "../../node_modules/typeorm/entity-schema/EntitySchemaOptions";
 import * as _ from "lodash";
-import {Car, Category, CategoryEntity} from "./test-schema";
+import {Car, Category} from "./test-schema";
 import {TableOptions} from "../../node_modules/typeorm/schema-builder/options/TableOptions";
 import {AiosDriver} from "../../src/driver/aios/AiosDriver";
-import {inspect} from "util";
 
 
 const DB = 'informix';

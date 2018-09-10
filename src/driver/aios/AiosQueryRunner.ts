@@ -275,7 +275,6 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    * Executes sql used special for schema build.
    */
   protected async _executeQueries(upQueries: string | string[], downQueries: string | string[]): Promise<void> {
-    console.log(upQueries, downQueries)
     if (typeof upQueries === "string")
       upQueries = [upQueries];
     if (typeof downQueries === "string")
@@ -290,7 +289,6 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
       return Promise.resolve() as Promise<any>;
 */
     let queries = [...upQueries];
-    console.log('Q', queries);
 
     await this.driver._executeBatch(queries);
   }
