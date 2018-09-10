@@ -27,7 +27,9 @@ export class InformixDialect extends AbstractDialect {
 
   prepare(driver:AiosDriver){
     // For schema builder
-    (<any>driver.options).schema = driver.options.user;
+    if(!_.has(driver.options,'schema')){
+      (<any>driver.options).schema = driver.options.user;
+    }
   }
 
   afterConnect(driver:AiosDriver){
@@ -35,7 +37,8 @@ export class InformixDialect extends AbstractDialect {
   }
 
 
-  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity> {
+  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner,
+                              alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity> {
     const connection = entityManager.connection;
     if (alias) {
       const metadata = connection.getMetadata(entityClass as Function | string);
