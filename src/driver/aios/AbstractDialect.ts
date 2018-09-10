@@ -7,7 +7,7 @@ import {
   SelectQueryBuilder,
   TableColumn
 } from "typeorm";
-import {DataTypeDefaults} from "/typeorm/driver/types/DataTypeDefaults";
+import {DataTypeDefaults} from "typeorm/driver/types/DataTypeDefaults";
 import {MappedColumnTypes} from "typeorm/driver/types/MappedColumnTypes";
 import {IDialect} from "./IDialect";
 import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
