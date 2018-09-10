@@ -1,9 +1,9 @@
-import {PromiseUtils, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex} from "typeorm";
+import {QueryRunner, Table, TableColumn, TableForeignKey, TableIndex} from "typeorm";
 import {BaseQueryRunner} from "typeorm/query-runner/BaseQueryRunner";
 import {TableCheck} from "typeorm/schema-builder/table/TableCheck";
 import {TableUnique} from "typeorm/schema-builder/table/TableUnique";
 import {ReadStream} from "fs";
-import {Broadcaster} from "../../../node_modules/typeorm/subscriber/Broadcaster";
+import {Broadcaster} from "typeorm/subscriber/Broadcaster";
 import {AiosDriver} from "./AiosDriver";
 import {NotYetImplementedError} from "./NotYetImplementedError";
 import * as _ from "lodash";

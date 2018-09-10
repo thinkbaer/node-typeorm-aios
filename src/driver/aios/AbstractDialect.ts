@@ -7,17 +7,17 @@ import {
   SelectQueryBuilder,
   TableColumn
 } from "typeorm";
-import {DataTypeDefaults} from "../../../node_modules/typeorm/driver/types/DataTypeDefaults";
-import {MappedColumnTypes} from "../../../node_modules/typeorm/driver/types/MappedColumnTypes";
+import {DataTypeDefaults} from "/typeorm/driver/types/DataTypeDefaults";
+import {MappedColumnTypes} from "typeorm/driver/types/MappedColumnTypes";
 import {IDialect} from "./IDialect";
-import {ColumnMetadata} from "../../../node_modules/typeorm/metadata/ColumnMetadata";
+import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
 import {NotYetImplementedError} from "./NotYetImplementedError";
-import {DateUtils} from "../../../node_modules/typeorm/util/DateUtils";
+import {DateUtils} from "typeorm/util/DateUtils";
 import {AiosQueryRunner} from "./AiosQueryRunner";
 import {AiosDriver} from "./AiosDriver";
 import * as _ from 'lodash';
-import {SchemaBuilder} from "../../../node_modules/typeorm/schema-builder/SchemaBuilder";
-import {RdbmsSchemaBuilder} from "../../../node_modules/typeorm/schema-builder/RdbmsSchemaBuilder";
+import {SchemaBuilder} from "typeorm/schema-builder/SchemaBuilder";
+import {RdbmsSchemaBuilder} from "typeorm/schema-builder/RdbmsSchemaBuilder";
 
 
 export abstract class AbstractDialect implements IDialect {

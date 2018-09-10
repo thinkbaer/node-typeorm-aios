@@ -5,13 +5,12 @@ import {
   ObjectType,
   QueryRunner,
   SelectQueryBuilder,
-  Table,
   TableColumn
 } from "typeorm";
-import {ColumnMetadata} from "../../../node_modules/typeorm/metadata/ColumnMetadata";
+import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
 import {AiosQueryRunner} from "./AiosQueryRunner";
 import {AiosDriver} from "./AiosDriver";
-import {SchemaBuilder} from "../../../node_modules/typeorm/schema-builder/SchemaBuilder";
+import {SchemaBuilder} from "typeorm/schema-builder/SchemaBuilder";
 
 
 export interface IDialect {
