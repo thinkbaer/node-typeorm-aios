@@ -42,17 +42,19 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
 
     const distinctAlias = this.escape(mainAlias);
     let countSql: string = "";
+    // informix does not support multiple columns in distinct and count
+    // https://www.ibm.com/support/knowledgecenter/en/SSGU8G_12.1.0/com.ibm.sqls.doc/ids_sqs_1581.htm
     if (metadata.hasMultiplePrimaryKeys) {
-      countSql = `COUNT (DISTINCT ` + metadata.primaryColumns.map((primaryColumn, index) => {
+      countSql = `COUNT (DISTINCT CONCAT(` + metadata.primaryColumns.map((primaryColumn, index) => {
         const propertyName = this.escape(primaryColumn.databaseName);
         return `${distinctAlias}.${propertyName}`;
-      }).join(", ") + ") as cnt";
+      }).join(", ") + ")) as cnt";
 
     } else {
-      countSql = `COUNT (DISTINCT ` + metadata.primaryColumns.map((primaryColumn, index) => {
+      countSql = `COUNT (DISTINCT CONCAT(` + metadata.primaryColumns.map((primaryColumn, index) => {
         const propertyName = this.escape(primaryColumn.databaseName);
         return `${distinctAlias}.${propertyName}`;
-      }).join(", ") + ") as cnt";
+      }).join(", ") + ")) as cnt";
     }
 
     const results = await this.clone()
