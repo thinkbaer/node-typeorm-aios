@@ -52,7 +52,7 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
         return `${distinctAlias}.${propertyName}`;
       }).join(" || ") + ")) as cnt";
 */
-      countSql = `COUNT (*)`;
+      countSql = `COUNT (*) as cnt`;
     } else {
       countSql = `COUNT (DISTINCT (` + metadata.primaryColumns.map((primaryColumn, index) => {
         const propertyName = this.escape(primaryColumn.databaseName);
