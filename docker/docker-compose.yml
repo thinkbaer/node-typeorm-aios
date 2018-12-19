@@ -3,7 +3,7 @@ services:
 
   informix:
     image: ibmcom/informix-developer-database
-    container_name: informix
+    container_name: typeorm_informix
     environment:
     - LICENSE=accept
     privileged: true
@@ -14,7 +14,7 @@ services:
 
   aios:
     image: thinkbaer/aios:0.3.0
-    container_name: node_typeorm_aios
+    container_name: typeorm_aios
     ports:
     - 127.0.0.1:8118:8118
     links:

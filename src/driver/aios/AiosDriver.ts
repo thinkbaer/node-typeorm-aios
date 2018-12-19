@@ -149,8 +149,7 @@ export class AiosDriver implements Driver {
    */
   protected loadDependencies(): void {
     try {
-      this.AIOS = PlatformTools.load("aios");
-
+      this.AIOS = require("aios");
     } catch (e) {
       throw new DriverPackageNotInstalledError("Aios", "aios");
     }
