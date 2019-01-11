@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import {suite, test, timeout} from 'mocha-typescript';
-import {createConnection, DatabaseType, Table, TableColumn} from 'typeorm';
+import {createConnection, DatabaseType, getConnectionManager, Table, TableColumn} from 'typeorm';
 import {AiosConnectionOptions} from "../../src/driver/aios/AiosConnectionOptions";
 
 import '../../src/integrate';
@@ -29,7 +29,7 @@ const aiosConfigTemplate: AiosConnectionOptions = {
 };
 
 
-@suite('functional/test/' + DB) @timeout(10000)
+@suite('functional/' + DB) @timeout(10000)
 class TestSpec {
 
 
@@ -124,8 +124,8 @@ class TestSpec {
           data_type: 'timeseries(iot_data_t)',
           comment: ''
         }],
-      indices:
-        [],
+      indices:[],
+      exclusions: [],
       foreignKeys: [],
       uniques: [],
       checks: [],
@@ -139,7 +139,7 @@ class TestSpec {
 
   @test
   async 'create table / drop table'() {
-
+    _.remove(getConnectionManager().connections, x => true);
     let aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
@@ -205,8 +205,8 @@ class TestSpec {
             data_type: null,
             comment: ''
           }],
-      indices:
-        [],
+      indices: [],
+      exclusions: [],
       foreignKeys: [],
       uniques: [],
       checks: [],

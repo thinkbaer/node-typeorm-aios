@@ -3,7 +3,7 @@ services:
 
   informix:
     image: ibmcom/informix-developer-database
-    container_name: typeorm_informix
+    container_name: typeorm_aios_informix
     environment:
     - LICENSE=accept
     privileged: true

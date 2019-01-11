@@ -7,6 +7,7 @@ import {Broadcaster} from "typeorm/subscriber/Broadcaster";
 import {AiosDriver} from "./AiosDriver";
 import {NotYetImplementedError} from "./NotYetImplementedError";
 import * as _ from "lodash";
+import {TableExclusion} from "typeorm/schema-builder/table/TableExclusion";
 
 
 export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
@@ -291,6 +292,23 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
     let queries = [...upQueries];
 
     await this.driver._executeBatch(queries);
+  }
+
+  createExclusionConstraint(table: Table | string, exclusionConstraint: TableExclusion): Promise<void> {
+    throw new NotYetImplementedError();
+    return undefined;
+  }
+
+  createExclusionConstraints(table: Table | string, exclusionConstraints: TableExclusion[]): Promise<void> {
+    throw new NotYetImplementedError();
+  }
+
+  dropExclusionConstraint(table: Table | string, exclusionOrName: TableExclusion | string): Promise<void> {
+    throw new NotYetImplementedError();
+  }
+
+  dropExclusionConstraints(table: Table | string, exclusionConstraints: TableExclusion[]): Promise<void> {
+    throw new NotYetImplementedError();
   }
 
 }
