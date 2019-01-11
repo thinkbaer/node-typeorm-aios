@@ -22,5 +22,5 @@ before_install:
   - cd docker
   - docker-compose up &
   - cd ..
-  - sleep 180
+  - sleep 300
 

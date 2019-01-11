@@ -29,7 +29,7 @@ const aiosConfigTemplate: AiosConnectionOptions = {
 };
 
 
-@suite('functional/' + DB) @timeout(10000)
+@suite('functional/' + DB) @timeout(20000)
 class TestSpec {
 
 
