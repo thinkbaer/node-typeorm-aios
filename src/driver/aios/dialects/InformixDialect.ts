@@ -13,7 +13,8 @@ export class InformixDialect extends AbstractDialect {
   type: string = 'informix';
 
   supportedDataTypes: any[] = [
-    "bigint", "bigserial", "byte", "bson", "json", "character", "char",
+    "bigint", "bigserial", "byte", "bson", "boolean", "blob",
+    "json", "character", "char", "clob",
     "character varying", "date", "datetime", "dec", "decimal",
     "double precision", "float", "int", "integer", "interval",
     "money", "nchar", "numeric", "nvarchar", "lvarchar",
