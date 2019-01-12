@@ -2,7 +2,7 @@ version: '3'
 services:
 
   informix:
-    image: ibmcom/informix-developer-database
+    image: ibmcom/informix-developer-database:12.10.FC11DE
     container_name: typeorm_aios_informix
     environment:
     - LICENSE=accept
