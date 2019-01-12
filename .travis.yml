@@ -15,12 +15,10 @@ before_install:
   # install the latest docker and docker-compose versions
   - sudo apt-get remove docker docker-engine
   - sudo curl -sSL https://get.docker.com/ | sh
-  - sudo rm /usr/local/bin/docker-compose
   - sudo sysctl -w kernel.shmmax=2073741824
   - sudo sysctl -w kernel.shmall=2073741824
   - npm install -g nyc
   - npm install -g codecov
-  - sudo rm /usr/local/bin/docker-compose
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
