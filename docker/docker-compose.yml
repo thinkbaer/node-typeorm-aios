@@ -18,6 +18,4 @@ services:
     container_name: typeorm_aios
     ports:
     - 127.0.0.1:8118:8118
-    links:
-      - informix
     network_mode: host
