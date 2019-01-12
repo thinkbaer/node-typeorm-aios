@@ -18,7 +18,7 @@ const aiosConfigTemplate: AiosConnectionOptions = {
   type: <DatabaseType>"aios",
   jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
   jdbcDriverLocation: "/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar",
-  url: "jdbc:informix-sqli://informix:9088/iot:INFORMIXSERVER=informix;DELIMITER=",
+  url: "jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=",
   user: 'informix',
   password: 'in4mix',
   dialect: DB,
