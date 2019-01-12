@@ -1,3 +1,5 @@
+dist: xenial
+
 language: node_js
 
 sudo: required
@@ -5,23 +7,23 @@ sudo: required
 env:
   - DOCKER_COMPOSE_VERSION=1.23.1
 
+services:
+  - docker
 
 node_js:
-  - "8"
-  - "9"
-  - "10"
+  - 10
 
 before_install:
-  # install the latest docker and docker-compose versions
-  - sudo apt-get remove docker docker-engine
-  - sudo curl -sSL https://get.docker.com/ | sh
+#  install the latest docker and docker-compose versions
+#  - sudo apt-get remove docker docker-engine
+#  - sudo curl -sSL https://get.docker.com/ | sh
   - sudo sysctl -w kernel.shmmax=2073741824
   - sudo sysctl -w kernel.shmall=2073741824
   - npm install -g nyc
   - npm install -g codecov
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
+#  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+#  - chmod +x docker-compose
+#  - sudo mv docker-compose /usr/local/bin
   - cd docker
   - docker-compose up &
   - cd ..
