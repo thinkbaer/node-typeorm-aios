@@ -1,6 +1,6 @@
 {
   "name": "typeorm-aios",
-  "version": "0.1.12",
+  "version": "0.1.11",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -68,18 +68,18 @@
     "gulp-typescript": "^5.0.0",
     "gulp-util": "^3.0.8",
     "gulp-watch": "^5.0.1",
-    "gulpclass": "^0.2.0",
+    "gulpclass": "^0.1.2",
     "mocha": "^5.2.0",
     "mocha-typescript": "^1.1.17",
     "nyc": "^13.1.0",
-    "ts-node": "^7.0.1",
+    "ts-node": "^8.0.2",
     "tslint": "~5.12.1",
-    "typescript": "^3.2.2",
+    "typescript": "^3.2.4",
     "typescript-require": "^0.2.10"
   },
   "dependencies": {
     "aios": "^0.2.0",
     "lodash": "^4.17.11",
-    "typeorm": "^0.2.11"
+    "typeorm": "^0.2.12"
   }
 }
