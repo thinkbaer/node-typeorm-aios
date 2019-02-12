@@ -8,7 +8,6 @@ import {QueryRunner} from "typeorm/query-runner/QueryRunner";
 import {ObjectLiteral} from "typeorm/common/ObjectLiteral";
 import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
 import {AiosConnectionOptions} from "./AiosConnectionOptions";
-import {PlatformTools} from "typeorm/platform/PlatformTools";
 import {DriverPackageNotInstalledError} from "typeorm/error/DriverPackageNotInstalledError";
 import {AiosQueryRunner} from "./AiosQueryRunner";
 import {NotYetImplementedError} from "./NotYetImplementedError";
@@ -386,13 +385,19 @@ export class AiosDriver implements Driver {
       await this.connect();
       if (this.connected) {
         // TODO format query!
-        this.dataSource.executeBatch(queryies, (err: Error, res: any) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(res.batchResults);
-          }
-        });
+        try {
+          this.dataSource.executeBatch(queryies, (err: Error, res: any) => {
+            if (err) {
+              err.message = 'catched aios error in executeBatch: ' + err.message + ' (SQL:' + queryies + ')';
+              reject(err);
+            } else {
+              resolve(res.batchResults);
+            }
+          });
+        } catch (err) {
+          err.message = 'catched aios error in executeBatch: ' + err.message + ' (SQL:' + queryies + ')';
+          reject(err)
+        }
       } else {
         reject(new Error('no connection to aios'))
       }
@@ -410,13 +415,19 @@ export class AiosDriver implements Driver {
 
         // TODO format query!
         const _query = this.dialect.buildQuery(query, parameters);
-        this.dataSource.execute(_query, (err: Error, res: any) => {
-          if (err != null) {
-            reject(err);
-          } else {
-            resolve(res);
-          }
-        })
+        try {
+          this.dataSource.execute(_query, (err: Error, res: any) => {
+            if (err != null) {
+              err.message = 'catched aios error in execute: ' + err.message + ' (SQL:' + _query + ')';
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          })
+        } catch (err) {
+          err.message = 'catched aios error in execute: ' + err.message + ' (SQL:' + _query + ')';
+          reject(err)
+        }
       } else {
         reject(new Error('no connection to aios'))
       }
@@ -433,13 +444,19 @@ export class AiosDriver implements Driver {
 
         // TODO format query!
         const _query = this.dialect.buildQuery(query, parameters);
-        this.dataSource.update(_query, (err: Error, res: any) => {
-          if (err != null) {
-            reject(err);
-          } else {
-            resolve(res.data);
-          }
-        })
+        try {
+          this.dataSource.update(_query, (err: Error, res: any) => {
+            if (err != null) {
+              err.message = 'catched aios error in update: ' + err.message + ' (SQL:' + _query + ')';
+              reject(err);
+            } else {
+              resolve(res.data);
+            }
+          })
+        } catch (err) {
+          err.message = 'catched aios error in update: ' + err.message + ' (SQL:' + _query + ')';
+          reject(err)
+        }
       } else {
         reject(new Error('no connection to aios'))
       }
@@ -455,14 +472,20 @@ export class AiosDriver implements Driver {
       if (this.connected) {
         // TODO format query!
         const _query = this.dialect.buildQuery(query, parameters);
-        this.dataSource.query(_query, (err: Error, res: any) => {
-          if (err) {
-            reject(err);
-          } else {
-            res = this.dialect.processResultSet(res);
-            resolve(res);
-          }
-        })
+        try {
+          this.dataSource.query(_query, (err: Error, res: any) => {
+            if (err) {
+              err.message = 'catched aios error in query: ' + err.message + ' (SQL:' + _query + ')';
+              reject(err);
+            } else {
+              res = this.dialect.processResultSet(res);
+              resolve(res);
+            }
+          })
+        } catch (err) {
+          err.message = 'catched aios error in query: ' + err.message + ' (SQL:' + _query + ')';
+          reject(err)
+        }
       } else {
         reject(new Error('no connection to aios'))
       }

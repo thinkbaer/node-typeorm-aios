@@ -90,13 +90,27 @@ export abstract class AbstractDialect implements IDialect {
     return '$' + (index + 1);
   }
 
+
   buildQuery(query: string, parameters?: string[]) {
     let str = query;
     if (_.isArray(parameters) && parameters.length > 0) {
-      parameters.map((p: string, idx: number) => str = str.replace('$' + (idx + 1), `'${this.escapeValue(p)}'`))
+      parameters.map((p: string, idx: number) => {
+        let value = p;
+        if(_.isString(p)){
+          value = "'" + this.escapeValue(value) + "'";
+        }else if(_.isNull(p) || _.isUndefined(p)){
+          value = 'NULL';
+        }else if(_.isDate(p)){
+          value = "'" + (<Date>p).toISOString() + "'";
+        }else if(_.isArrayBuffer(p)){
+          //value = (<ArrayBuffer>p).toString();
+        }
+        str = str.replace('$' + (idx + 1), `${value}`)
+      })
     }
     return str;
   }
+
 
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]] {
     const builtParameters: any[] = Object.keys(nativeParameters).map(key => nativeParameters[key]);

@@ -1,11 +1,26 @@
-import {QueryRunner, SelectQueryBuilder} from "typeorm";
+import {InsertQueryBuilder, QueryRunner, SelectQueryBuilder} from "typeorm";
 import {SelectQuery} from "typeorm/query-builder/SelectQuery";
-import {Alias} from "typeorm/query-builder/Alias";
 import {QueryResultCacheOptions} from "typeorm/cache/QueryResultCacheOptions";
 import * as _ from "lodash";
 
 
 export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entity> {
+
+  /**
+   * Creates INSERT query.
+
+
+  insert(): InsertQueryBuilder<Entity> {
+    this.expressionMap.queryType = "insert";
+
+    // loading it dynamically because of circular issue
+    const InformixInsertQueryBuilder = require("./InformixInsertQueryBuilder").InformixInsertQueryBuilder;
+    if (this instanceof InsertQueryBuilder)
+      return this as any;
+
+    return new InformixInsertQueryBuilder(this);
+  }
+   */
 
   /*
   insert(){
