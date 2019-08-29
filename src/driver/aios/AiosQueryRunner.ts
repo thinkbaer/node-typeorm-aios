@@ -191,7 +191,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
       const db = _.find(this.driver.catalogs, {name: database});
       schemas = db.schemas;
     } else {
-      schemas = _.uniq(_.merge([], ... _.map(this.driver.catalogs, catalog => catalog.schemas)));
+      schemas = _.uniq(_.merge([], ..._.map(this.driver.catalogs, catalog => catalog.schemas)));
     }
     return Promise.resolve(schemas);
   }
@@ -323,7 +323,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
   protected loadViews(tablePaths: string[]): Promise<View[]> {
-    throw new NotYetImplementedError();
+    return Promise.resolve([]);
   }
 
 }
