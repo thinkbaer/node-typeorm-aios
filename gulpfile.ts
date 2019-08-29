@@ -47,8 +47,7 @@ export class Gulpfile {
     const tsResult = gulp.src([
       "./src/**/*.ts",
       "!./src/**/files/*.ts",
-      "!./src/**/files/**/*.ts",
-      "./node_modules/@types/**/*.ts"])
+      "!./src/**/files/**/*.ts"])
       .pipe(sourcemaps.init())
       .pipe(tsProject());
 
