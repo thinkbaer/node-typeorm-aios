@@ -1,16 +1,8 @@
-import {
-  ColumnType,
-  EntityManager,
-  ObjectLiteral,
-  ObjectType,
-  QueryRunner,
-  SelectQueryBuilder,
-  TableColumn
-} from "typeorm";
-import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
-import {AiosQueryRunner} from "./AiosQueryRunner";
-import {AiosDriver} from "./AiosDriver";
-import {SchemaBuilder} from "typeorm/schema-builder/SchemaBuilder";
+import {ColumnType, EntityManager, ObjectLiteral, ObjectType, QueryRunner, SelectQueryBuilder, TableColumn} from 'typeorm';
+import {ColumnMetadata} from 'typeorm/metadata/ColumnMetadata';
+import {AiosQueryRunner} from './AiosQueryRunner';
+import {AiosDriver} from './AiosDriver';
+import {SchemaBuilder} from 'typeorm/schema-builder/SchemaBuilder';
 
 
 export interface IDialect {
@@ -51,9 +43,10 @@ export interface IDialect {
 
   preparePersistentValue(value: any, column: ColumnMetadata): any;
 
-  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity>;
+  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner,
+                              alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity>;
 
-  createQueryRunner(driver: AiosDriver, mode: "master" | "slave"): AiosQueryRunner;
+  createQueryRunner(driver: AiosDriver, mode: 'master' | 'slave'): AiosQueryRunner;
 
   buildTableName(tableName: string, schema: string, database: string): string;
 

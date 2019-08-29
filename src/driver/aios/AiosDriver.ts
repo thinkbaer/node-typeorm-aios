@@ -1,21 +1,21 @@
-import {ColumnType, Connection, Driver} from "typeorm";
-import {MappedColumnTypes} from "typeorm/driver/types/MappedColumnTypes";
-import {SchemaBuilder} from "typeorm/schema-builder/SchemaBuilder";
-import {TableColumn} from "typeorm/schema-builder/table/TableColumn";
-import {EntityMetadata} from "typeorm/metadata/EntityMetadata";
-import {DataTypeDefaults} from "typeorm/driver/types/DataTypeDefaults";
-import {QueryRunner} from "typeorm/query-runner/QueryRunner";
-import {ObjectLiteral} from "typeorm/common/ObjectLiteral";
-import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
-import {AiosConnectionOptions} from "./AiosConnectionOptions";
-import {DriverPackageNotInstalledError} from "typeorm/error/DriverPackageNotInstalledError";
-import {AiosQueryRunner} from "./AiosQueryRunner";
-import {NotYetImplementedError} from "./NotYetImplementedError";
-import {AiosDialectFactory} from "./AiosDialectFactory";
+import {ColumnType, Connection, Driver} from 'typeorm';
+import {MappedColumnTypes} from 'typeorm/driver/types/MappedColumnTypes';
+import {SchemaBuilder} from 'typeorm/schema-builder/SchemaBuilder';
+import {TableColumn} from 'typeorm/schema-builder/table/TableColumn';
+import {EntityMetadata} from 'typeorm/metadata/EntityMetadata';
+import {DataTypeDefaults} from 'typeorm/driver/types/DataTypeDefaults';
+import {QueryRunner} from 'typeorm/query-runner/QueryRunner';
+import {ObjectLiteral} from 'typeorm/common/ObjectLiteral';
+import {ColumnMetadata} from 'typeorm/metadata/ColumnMetadata';
+import {AiosConnectionOptions} from './AiosConnectionOptions';
+import {DriverPackageNotInstalledError} from 'typeorm/error/DriverPackageNotInstalledError';
+import {AiosQueryRunner} from './AiosQueryRunner';
+import {NotYetImplementedError} from './NotYetImplementedError';
+import {AiosDialectFactory} from './AiosDialectFactory';
 
-import {IDialect} from "./IDialect";
-import * as _ from "lodash";
-import {OrmUtils} from "typeorm/util/OrmUtils";
+import {IDialect} from './IDialect';
+import * as _ from 'lodash';
+import {OrmUtils} from 'typeorm/util/OrmUtils';
 
 
 export interface ICatalog {
@@ -107,7 +107,7 @@ export class AiosDriver implements Driver {
 
   dataSource: any;
 
-  connected: boolean = false;
+  connected = false;
 
   aiosOptions: any = {};
 
@@ -148,9 +148,9 @@ export class AiosDriver implements Driver {
    */
   protected loadDependencies(): void {
     try {
-      this.AIOS = require("aios");
+      this.AIOS = require('aios');
     } catch (e) {
-      throw new DriverPackageNotInstalledError("Aios", "aios");
+      throw new DriverPackageNotInstalledError('Aios', 'aios');
     }
   }
 
@@ -160,7 +160,7 @@ export class AiosDriver implements Driver {
    * Depend on driver type it may create a connection pool.
    */
   connect(): Promise<any> {
-    if (this.isConnected()) return Promise.resolve(this.dataSource);
+    if (this.isConnected()) { return Promise.resolve(this.dataSource); }
     return new Promise<void>((resolve, reject) => {
       try {
         this.aiosServer.dataSource(this.options.id, this.aiosOptions, (err: Error, res: any) => {
@@ -178,7 +178,7 @@ export class AiosDriver implements Driver {
       await this.dialect.afterConnect(this);
       this.catalogs = await this._catalogs();
       return res;
-    })
+    });
   }
 
   isConnected(): boolean {
@@ -194,31 +194,31 @@ export class AiosDriver implements Driver {
    */
   afterConnect(): Promise<void> {
     return Promise.resolve();
-  };
+  }
 
   /**
    * Closes connection with database and releases all resources.
    */
   disconnect(): Promise<void> {
-    return Promise.resolve()
-  };
+    return Promise.resolve();
+  }
 
   /**
    * Synchronizes database schema (creates tables, indices, etc).
    */
   createSchemaBuilder(): SchemaBuilder {
     return this.dialect.createSchemaBuilder(this);
-  };
+  }
 
   /**
    * Creates a query runner used for common queries.
    */
-  createQueryRunner(mode: "master" | "slave"): QueryRunner {
+  createQueryRunner(mode: 'master' | 'slave'): QueryRunner {
     if (!this.queryRunner) {
       this.queryRunner = this.dialect.createQueryRunner(this, mode);
     }
     return this.queryRunner;
-  };
+  }
 
   /**
    * Replaces parameters in the given sql with special escaping character
@@ -226,7 +226,7 @@ export class AiosDriver implements Driver {
    */
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]] {
     return this.dialect.escapeQueryWithParameters(sql, parameters, nativeParameters);
-  };
+  }
 
 
   /**
@@ -237,7 +237,7 @@ export class AiosDriver implements Driver {
    */
   escape(name: string): string {
     return this.dialect.escape(name);
-  };
+  }
 
 
   /**
@@ -246,7 +246,7 @@ export class AiosDriver implements Driver {
    */
   buildTableName(tableName: string, schema?: string, database?: string): string {
     return this.dialect.buildTableName(tableName, schema, database);
-  };
+  }
 
 
   /**
@@ -255,14 +255,14 @@ export class AiosDriver implements Driver {
   preparePersistentValue(value: any, column: ColumnMetadata): any {
     return this.dialect.preparePersistentValue(value, column);
 
-  };
+  }
 
   /**
    * Prepares given value to a value to be persisted, based on its column type.
    */
   prepareHydratedValue(value: any, column: ColumnMetadata): any {
     return this.dialect.prepareHydratedValue(value, column);
-  };
+  }
 
   /**
    * Transforms type of the given column to a database column type.
@@ -275,7 +275,7 @@ export class AiosDriver implements Driver {
     isArray?: boolean;
   }): string {
     return this.dialect.normalizeType(column);
-  };
+  }
 
 
   /**
@@ -283,7 +283,7 @@ export class AiosDriver implements Driver {
    */
   normalizeDefault(columnMetadata: ColumnMetadata): string {
     return this.dialect.normalizeDefault(columnMetadata);
-  };
+  }
 
 
   /**
@@ -291,7 +291,7 @@ export class AiosDriver implements Driver {
    */
   normalizeIsUnique(column: ColumnMetadata): boolean {
     return this.dialect.normalizeIsUnique(column);
-  };
+  }
 
 
   /**
@@ -299,14 +299,14 @@ export class AiosDriver implements Driver {
    */
   getColumnLength(column: ColumnMetadata): string {
     return this.dialect.getColumnLength(column);
-  };
+  }
 
   /**
    * Normalizes "default" value of the column.
    */
   createFullType(column: TableColumn): string {
     return this.dialect.createFullType(column);
-  };
+  }
 
   /**
    * Obtains a new database connection to a master server.
@@ -314,8 +314,8 @@ export class AiosDriver implements Driver {
    * If replication is not setup then returns default connection's database connection.
    */
   obtainMasterConnection(): Promise<any> {
-    throw new NotYetImplementedError()
-  };
+    throw new NotYetImplementedError();
+  }
 
   /**
    * Obtains a new database connection to a slave server.
@@ -323,16 +323,17 @@ export class AiosDriver implements Driver {
    * If replication is not setup then returns master (default) connection's database connection.
    */
   obtainSlaveConnection(): Promise<any> {
-    throw new NotYetImplementedError()
-  };
+    throw new NotYetImplementedError();
+  }
 
   /**
    * Creates generated map of values generated or returned by database after INSERT query.
    */
   createGeneratedMap(metadata: EntityMetadata, insertResult: any): ObjectLiteral | undefined {
 
-    if (!insertResult)
+    if (!insertResult) {
       return undefined;
+    }
 
     return Object.keys(insertResult).reduce((map, key) => {
       const column = metadata.findColumnWithDatabaseName(key);
@@ -341,7 +342,7 @@ export class AiosDriver implements Driver {
       }
       return map;
     }, {} as ObjectLiteral);
-  };
+  }
 
   /**
    * Differentiate columns of this table and columns from the given column metadatas columns
@@ -349,7 +350,7 @@ export class AiosDriver implements Driver {
    */
   findChangedColumns(tableColumns: TableColumn[], columnMetadatas: ColumnMetadata[]): ColumnMetadata[] {
     return this.dialect.findChangedColumns(tableColumns, columnMetadatas);
-  };
+  }
 
 
   /**
@@ -357,8 +358,8 @@ export class AiosDriver implements Driver {
    */
   isReturningSqlSupported(): boolean {
     return false;
-    //throw new NotYetImplementedError()
-  };
+    // throw new NotYetImplementedError()
+  }
 
   /**
    * Returns true if driver supports uuid values generation on its own.
@@ -367,7 +368,7 @@ export class AiosDriver implements Driver {
     return false;
 
     // TODO throw new NotYetImplementedError()
-  };
+  }
 
   /**
    * Creates an escaped parameter.
@@ -396,10 +397,10 @@ export class AiosDriver implements Driver {
           });
         } catch (err) {
           err.message = 'catched aios error in executeBatch: ' + err.message + ' (SQL:' + queryies + ')';
-          reject(err)
+          reject(err);
         }
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }
@@ -423,13 +424,13 @@ export class AiosDriver implements Driver {
             } else {
               resolve(res);
             }
-          })
+          });
         } catch (err) {
           err.message = 'catched aios error in execute: ' + err.message + ' (SQL:' + _query + ')';
-          reject(err)
+          reject(err);
         }
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }
@@ -452,13 +453,13 @@ export class AiosDriver implements Driver {
             } else {
               resolve(res.data);
             }
-          })
+          });
         } catch (err) {
           err.message = 'catched aios error in update: ' + err.message + ' (SQL:' + _query + ')';
-          reject(err)
+          reject(err);
         }
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }
@@ -481,13 +482,13 @@ export class AiosDriver implements Driver {
               res = this.dialect.processResultSet(res);
               resolve(res);
             }
-          })
+          });
         } catch (err) {
           err.message = 'catched aios error in query: ' + err.message + ' (SQL:' + _query + ')';
-          reject(err)
+          reject(err);
         }
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }
@@ -503,9 +504,9 @@ export class AiosDriver implements Driver {
           } else {
             resolve(res);
           }
-        })
+        });
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }
@@ -514,11 +515,11 @@ export class AiosDriver implements Driver {
     return new Promise<any[]>(async (resolve, reject) => {
       await this.connect();
       if (this.isConnected()) {
-        let tables = [];
+        const tables = [];
         if (catalog) {
           tables.push(catalog);
           if (table) {
-            tables.push(table)
+            tables.push(table);
           }
         }
         // TODO format query!
@@ -528,9 +529,9 @@ export class AiosDriver implements Driver {
           } else {
             resolve(res);
           }
-        })
+        });
       } else {
-        reject(new Error('no connection to aios'))
+        reject(new Error('no connection to aios'));
       }
     });
   }

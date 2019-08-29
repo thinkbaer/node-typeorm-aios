@@ -1,4 +1,4 @@
-import {BaseConnectionOptions} from "typeorm/connection/BaseConnectionOptions";
+import {BaseConnectionOptions} from 'typeorm/connection/BaseConnectionOptions';
 
 
 export interface AiosConnectionOptions extends BaseConnectionOptions {

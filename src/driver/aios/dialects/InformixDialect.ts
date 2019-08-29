@@ -1,31 +1,31 @@
-import {AbstractDialect} from "../AbstractDialect";
-import {ColumnType, EntityManager, ObjectType, QueryRunner, SelectQueryBuilder} from "typeorm";
-import {InformixSelectQueryBuilder} from "./InformixSelectQueryBuilder";
-import * as _ from "lodash";
-import {InformixQueryRunner} from "./InformixQueryRunner";
-import {AiosQueryRunner} from "../AiosQueryRunner";
-import {AiosDriver} from "../AiosDriver";
-import {ColumnMetadata} from "typeorm/metadata/ColumnMetadata";
-import {InformixNamingStrategy} from "./InformixNamingStrategy";
-import {DateUtils} from "typeorm/util/DateUtils";
+import {AbstractDialect} from '../AbstractDialect';
+import {ColumnType, EntityManager, ObjectType, QueryRunner, SelectQueryBuilder} from 'typeorm';
+import {InformixSelectQueryBuilder} from './InformixSelectQueryBuilder';
+import * as _ from 'lodash';
+import {InformixQueryRunner} from './InformixQueryRunner';
+import {AiosQueryRunner} from '../AiosQueryRunner';
+import {AiosDriver} from '../AiosDriver';
+import {ColumnMetadata} from 'typeorm/metadata/ColumnMetadata';
+import {InformixNamingStrategy} from './InformixNamingStrategy';
+import {DateUtils} from 'typeorm/util/DateUtils';
 
 
 export class InformixDialect extends AbstractDialect {
-  type: string = 'informix';
+  type = 'informix';
 
   supportedDataTypes: any[] = [
-    "bigint", "bigserial", "byte", "bson", "boolean", "blob",
-    "json", "character", "char", "clob",
-    "character varying", "date", "datetime", "dec", "decimal",
-    "double precision", "float", "int", "integer",
+    'bigint', 'bigserial', 'byte', 'bson', 'boolean', 'blob',
+    'json', 'character', 'char', 'clob',
+    'character varying', 'date', 'datetime', 'dec', 'decimal',
+    'double precision', 'float', 'int', 'integer',
     'datetime year to fraction', 'datetime year to second',
     'interval day to fraction', 'interval day to second',
-    "money", "nchar", "numeric", "nvarchar", "lvarchar",
-    "real", "serial", "serial8", "smallfloat", "smallint",
-    "text", "varchar"];
+    'money', 'nchar', 'numeric', 'nvarchar', 'lvarchar',
+    'real', 'serial', 'serial8', 'smallfloat', 'smallint',
+    'text', 'varchar'];
 
-  withLengthColumnTypes: any[] = ["character", "char",
-    "character varying", "float", "nchar", "varchar", "lvarchar"
+  withLengthColumnTypes: any[] = ['character', 'char',
+    'character varying', 'float', 'nchar', 'varchar', 'lvarchar'
   ];
 
 
@@ -64,21 +64,21 @@ export class InformixDialect extends AbstractDialect {
         if (_.isString(r[k])) {
           r[k] = r[k].trim();
         }
-      })
+      });
     });
 
     return res;
   }
 
 
-  createQueryRunner(driver: AiosDriver, mode: "slave" | "master"): AiosQueryRunner {
+  createQueryRunner(driver: AiosDriver, mode: 'slave' | 'master'): AiosQueryRunner {
     return new InformixQueryRunner(driver, mode);
   }
 
 
   buildTableName(table: string, schema?: string, database?: string): string {
     if (schema) {
-      return [schema.trim(), table.trim()].join('.')
+      return [schema.trim(), table.trim()].join('.');
     } else {
       return table.trim();
     }
@@ -90,18 +90,18 @@ export class InformixDialect extends AbstractDialect {
     let str = query;
     if (_.isArray(parameters) && parameters.length > 0) {
       for (let idx = parameters.length - 1; idx >= 0; idx--) {
-        let p = parameters[idx]
+        const p = parameters[idx];
         let value = p;
         if (_.isString(p)) {
-          value = "'" + this.escapeValue(value) + "'";
+          value = '\'' + this.escapeValue(value) + '\'';
         } else if (_.isNull(p) || _.isUndefined(p)) {
           value = 'NULL';
         } else if (_.isDate(p)) {
-          value = "'" + (<Date>p).toISOString().replace(/T|Z/g, ' ').trim() + "'";
+          value = '\'' + (<Date>p).toISOString().replace(/T|Z/g, ' ').trim() + '\'';
         } else if (_.isBoolean(p)) {
-          value = "'" + (p ? 'T' : 'F') + "'";
+          value = '\'' + (p ? 'T' : 'F') + '\'';
         }
-        str = str.replace('$' + (idx + 1), `${value}`)
+        str = str.replace('$' + (idx + 1), `${value}`);
       }
     }
     return str;
@@ -109,26 +109,31 @@ export class InformixDialect extends AbstractDialect {
 
 
   preparePersistentValue(value: any, columnMetadata: ColumnMetadata): any {
-    if (columnMetadata.transformer)
-      value = columnMetadata.transformer.from(value);
+    if (columnMetadata.transformer) {
+      value = _.isArray(columnMetadata.transformer) ?
+        columnMetadata.transformer.map(t => t.from(value)) :
+        columnMetadata.transformer.from(value);
+    }
 
-    if (value === null || value === undefined)
+    if (value === null || value === undefined) {
       return value;
+    }
 
-    if (columnMetadata.type === Boolean || columnMetadata.type === "boolean") {
+    if (columnMetadata.type === Boolean || columnMetadata.type === 'boolean') {
       return value ? 'T' : 'F';
-    } else if (columnMetadata.type === "datetime year to fraction" || columnMetadata.type === Date) {
+    } else if (columnMetadata.type as any === 'datetime year to fraction' || columnMetadata.type === Date) {
       return DateUtils.normalizeHydratedDate(value);
-    } else if (columnMetadata.type === "datetime year to second") {
+    } else if (columnMetadata.type as any === 'datetime year to second') {
       if (_.isDate(value)) {
         return value.toISOString().replace(/T|\.\d{3}Z$/g, ' ').trim();
       }
-    } else if (columnMetadata.type === "json") {
-      if (_.isObjectLike(value))
+    } else if (columnMetadata.type === 'json') {
+      if (_.isObjectLike(value)) {
         return JSON.stringify(value);
-    } else if (columnMetadata.type === "date") {
+      }
+    } else if (columnMetadata.type === 'date') {
       return DateUtils.mixedDateToDateString(value);
-    } else if (columnMetadata.type === "time") {
+    } else if (columnMetadata.type === 'time') {
       return DateUtils.mixedTimeToString(value);
     }
 
@@ -136,7 +141,10 @@ export class InformixDialect extends AbstractDialect {
   }
 
 
-  normalizeType(column: { type?: ColumnType | string; length?: number | string; precision?: number | null; scale?: number; isArray?: boolean }): string {
+  normalizeType(column: {
+    type?: ColumnType | string; length?: number | string;
+    precision?: number | null; scale?: number; isArray?: boolean
+  }): string {
     if (column instanceof ColumnMetadata) {
       if (column.type === Number) {
         if (column.isPrimary && column.isGenerated) {
@@ -145,21 +153,21 @@ export class InformixDialect extends AbstractDialect {
       }
     }
 
-    if (column.type === Number || column.type === "int") {
-      return "integer";
+    if (column.type === Number || column.type === 'int') {
+      return 'integer';
 
-    } else if (column.type === String || column.type == 'text') {
+    } else if (column.type === String || column.type === 'text') {
       // TODO workaround to text which are blobs limit to 32kb
-      return "lvarchar";
+      return 'lvarchar';
 
     } else if (column.type === Date) {
-      return "datetime";
+      return 'datetime';
 
     } else if (column.type === Boolean) {
-      return "boolean";
+      return 'boolean';
 
     } else {
-      return column.type as string || "";
+      return column.type as string || '';
     }
   }
 
@@ -170,19 +178,19 @@ export class InformixDialect extends AbstractDialect {
   normalizeDefault(columnMetadata: ColumnMetadata): string {
     const defaultValue = columnMetadata.default;
 
-    if (typeof defaultValue === "number") {
-      return "" + defaultValue;
+    if (typeof defaultValue === 'number') {
+      return '' + defaultValue;
 
-    } else if (typeof defaultValue === "boolean") {
-      return defaultValue === true ? "true" : "false";
+    } else if (typeof defaultValue === 'boolean') {
+      return defaultValue === true ? 'true' : 'false';
 
-    } else if (typeof defaultValue === "function") {
+    } else if (typeof defaultValue === 'function') {
       return defaultValue();
 
-    } else if (typeof defaultValue === "string") {
+    } else if (typeof defaultValue === 'string') {
       return `'${defaultValue}'`;
 
-    } else if (typeof defaultValue === "object") {
+    } else if (typeof defaultValue === 'object') {
       return `'${JSON.stringify(defaultValue)}'`;
 
     } else {

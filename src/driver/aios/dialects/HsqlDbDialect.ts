@@ -1,86 +1,89 @@
-import {ColumnType, EntityManager, ObjectLiteral, ObjectType, QueryRunner, SelectQueryBuilder} from "typeorm";
-import * as _ from "lodash";
-import {AbstractDialect} from "../AbstractDialect";
-import {NotYetImplementedError} from "../NotYetImplementedError";
-import {HsqlDbSelectQueryBuilder} from "./HsqlDbSelectQueryBuilder";
+import {ColumnType, EntityManager, ObjectLiteral, ObjectType, QueryRunner, SelectQueryBuilder} from 'typeorm';
+import * as _ from 'lodash';
+import {AbstractDialect} from '../AbstractDialect';
+import {NotYetImplementedError} from '../NotYetImplementedError';
+import {HsqlDbSelectQueryBuilder} from './HsqlDbSelectQueryBuilder';
 
 
 export class HsqlDbDialect extends AbstractDialect {
 
-  type: string = 'hsqldb';
+  type = 'hsqldb';
   supportedDataTypes: ColumnType[] = [
-    "int",
-    "tinyint",
-    "smallint",
-    "mediumint",
-    "bigint",
-    "float",
-    "double",
-    "decimal",
-    "date",
-    "datetime",
-    "timestamp",
-    "time",
-    "year",
-    "char",
-    "varchar",
-    "blob",
-    "text",
-    "tinyblob",
-    "tinytext",
-    "mediumblob",
-    "mediumtext",
-    "longblob",
-    "longtext",
-    "enum",
-    "json"
+    'int',
+    'tinyint',
+    'smallint',
+    'mediumint',
+    'bigint',
+    'float',
+    'double',
+    'decimal',
+    'date',
+    'datetime',
+    'timestamp',
+    'time',
+    'year',
+    'char',
+    'varchar',
+    'blob',
+    'text',
+    'tinyblob',
+    'tinytext',
+    'mediumblob',
+    'mediumtext',
+    'longblob',
+    'longtext',
+    'enum',
+    'json'
   ];
 
   withLengthColumnTypes: ColumnType[] = [
-    "int",
-    "tinyint",
-    "smallint",
-    "mediumint",
-    "bigint",
-    "char",
-    "varchar",
-    "blob",
-    "text"];
+    'int',
+    'tinyint',
+    'smallint',
+    'mediumint',
+    'bigint',
+    'char',
+    'varchar',
+    'blob',
+    'text'];
   withPrecisionColumnTypes: ColumnType[] = [];
 
   withScaleColumnTypes: ColumnType[] = [];
 
-  normalizeType(column: { type?: ColumnType | string; length?: number | string; precision?: number | null; scale?: number; isArray?: boolean }): string {
-    if (column.type === Number || column.type === "integer") {
-      return "int";
+  normalizeType(column: {
+    type?: ColumnType | string; length?: number | string;
+    precision?: number | null; scale?: number; isArray?: boolean
+  }): string {
+    if (column.type === Number || column.type === 'integer') {
+      return 'int';
 
     } else if (column.type === String) {
-      return "varchar";
+      return 'varchar';
 
     } else if (column.type === Date) {
-      return "datetime";
+      return 'datetime';
 
     } else if ((column.type as any) === Buffer) {
-      return "blob";
+      return 'blob';
 
     } else if (column.type === Boolean) {
-      return "tinyint";
+      return 'tinyint';
 
-    } else if (column.type === "uuid") {
-      return "varchar";
+    } else if (column.type === 'uuid') {
+      return 'varchar';
 
-    } else if (column.type === "simple-array") {
-      return "text";
+    } else if (column.type === 'simple-array') {
+      return 'text';
 
     } else {
-      return column.type as string || "";
+      return column.type as string || '';
     }
   }
 
   processResultSet(res: any[]): any[] {
-    let _res: any[] = [];
+    const _res: any[] = [];
     res.forEach(r => {
-      let _r: any = {};
+      const _r: any = {};
       _.keys(r).forEach(k => {
         _r[k.toLocaleLowerCase()] = r[k];
       });
@@ -95,8 +98,9 @@ export class HsqlDbDialect extends AbstractDialect {
 
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]] {
 
-    if (!parameters || !Object.keys(parameters).length)
+    if (!parameters || !Object.keys(parameters).length) {
       return [sql, []];
+    }
 
     throw new NotYetImplementedError();
     /*
@@ -120,7 +124,9 @@ export class HsqlDbDialect extends AbstractDialect {
     */
   }
 
-  createQueryBuilder?<Entity>(entityManager: EntityManager, entityClass?: ObjectType<Entity> | Function | string | QueryRunner, alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity> {
+  createQueryBuilder?<Entity>(entityManager: EntityManager,
+                              entityClass?: ObjectType<Entity> | Function | string | QueryRunner,
+                              alias?: string, queryRunner?: QueryRunner): SelectQueryBuilder<Entity> {
     const connection = entityManager.connection;
     if (alias) {
       const metadata = connection.getMetadata(entityClass as Function | string);

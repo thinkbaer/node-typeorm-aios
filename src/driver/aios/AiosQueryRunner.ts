@@ -1,13 +1,14 @@
-import {QueryRunner, Table, TableColumn, TableForeignKey, TableIndex} from "typeorm";
-import {BaseQueryRunner} from "typeorm/query-runner/BaseQueryRunner";
-import {TableCheck} from "typeorm/schema-builder/table/TableCheck";
-import {TableUnique} from "typeorm/schema-builder/table/TableUnique";
-import {ReadStream} from "fs";
-import {Broadcaster} from "typeorm/subscriber/Broadcaster";
-import {AiosDriver} from "./AiosDriver";
-import {NotYetImplementedError} from "./NotYetImplementedError";
-import * as _ from "lodash";
-import {TableExclusion} from "typeorm/schema-builder/table/TableExclusion";
+import {QueryRunner, Table, TableColumn, TableForeignKey, TableIndex} from 'typeorm';
+import {BaseQueryRunner} from 'typeorm/query-runner/BaseQueryRunner';
+import {TableCheck} from 'typeorm/schema-builder/table/TableCheck';
+import {TableUnique} from 'typeorm/schema-builder/table/TableUnique';
+import {ReadStream} from 'fs';
+import {Broadcaster} from 'typeorm/subscriber/Broadcaster';
+import {AiosDriver} from './AiosDriver';
+import {NotYetImplementedError} from './NotYetImplementedError';
+import * as _ from 'lodash';
+import {TableExclusion} from 'typeorm/schema-builder/table/TableExclusion';
+import {View} from 'typeorm/schema-builder/view/View';
 
 
 export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
@@ -59,7 +60,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
   commitTransaction(): Promise<void> {
-    return Promise.resolve();// TODO throw new NotYetImplementedError();
+    return Promise.resolve(); // TODO throw new NotYetImplementedError();
   }
 
   async connect(): Promise<any> {
@@ -187,7 +188,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   getSchemas(database?: string): Promise<string[]> {
     let schemas: string[] = [];
     if (database) {
-      let db = _.find(this.driver.catalogs, {name: database});
+      const db = _.find(this.driver.catalogs, {name: database});
       schemas = db.schemas;
     } else {
       schemas = _.uniq(_.merge([], ... _.map(this.driver.catalogs, catalog => catalog.schemas)));
@@ -200,7 +201,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    */
   hasDatabase(database: string): Promise<boolean> {
     // TODO if connected!
-    let db = _.find(this.driver.catalogs, {name: database});
+    const db = _.find(this.driver.catalogs, {name: database});
     if (db) {
       return Promise.resolve(true);
     }
@@ -211,7 +212,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    * Checks if schema with the given name exist.
    */
   async hasSchema(schema: string): Promise<boolean> {
-    let schemas = await this.getSchemas();
+    const schemas = await this.getSchemas();
     return schemas.indexOf(schema) !== -1;
   }
 
@@ -243,12 +244,12 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
 
   rollbackTransaction(): Promise<void> {
     // TODO throw new NotYetImplementedError();
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   startTransaction(): Promise<void> {
     // TODO throw new NotYetImplementedError();
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   stream(query: string, parameters?: any[], onEnd?: Function, onError?: Function): Promise<ReadStream> {
@@ -276,10 +277,12 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
    * Executes sql used special for schema build.
    */
   protected async _executeQueries(upQueries: string | string[], downQueries: string | string[]): Promise<void> {
-    if (typeof upQueries === "string")
+    if (typeof upQueries === 'string') {
       upQueries = [upQueries];
-    if (typeof downQueries === "string")
+    }
+    if (typeof downQueries === 'string') {
       downQueries = [downQueries];
+    }
 
     /*
     this.sqlInMemory.upQueries.push(...upQueries);
@@ -289,7 +292,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
     if (this.sqlMemoryMode === true)
       return Promise.resolve() as Promise<any>;
 */
-    let queries = [...upQueries];
+    const queries = [...upQueries];
 
     await this.driver._executeBatch(queries);
   }
@@ -308,6 +311,18 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
   }
 
   dropExclusionConstraints(table: Table | string, exclusionConstraints: TableExclusion[]): Promise<void> {
+    throw new NotYetImplementedError();
+  }
+
+  createView(view: View, oldView?: View): Promise<void> {
+    throw new NotYetImplementedError();
+  }
+
+  dropView(view: View | string): Promise<void> {
+    throw new NotYetImplementedError();
+  }
+
+  protected loadViews(tablePaths: string[]): Promise<View[]> {
     throw new NotYetImplementedError();
   }
 

@@ -1,7 +1,7 @@
-import {InsertQueryBuilder, QueryRunner, SelectQueryBuilder} from "typeorm";
-import {SelectQuery} from "typeorm/query-builder/SelectQuery";
-import {QueryResultCacheOptions} from "typeorm/cache/QueryResultCacheOptions";
-import * as _ from "lodash";
+import {QueryRunner, SelectQueryBuilder} from 'typeorm';
+import {SelectQuery} from 'typeorm/query-builder/SelectQuery';
+import {QueryResultCacheOptions} from 'typeorm/cache/QueryResultCacheOptions';
+import * as _ from 'lodash';
 
 
 export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entity> {
@@ -10,7 +10,7 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
    * Creates INSERT query.
 
 
-  insert(): InsertQueryBuilder<Entity> {
+   insert(): InsertQueryBuilder<Entity> {
     this.expressionMap.queryType = "insert";
 
     // loading it dynamically because of circular issue
@@ -43,8 +43,9 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
     sql += this.createOrderByExpression();
     sql += this.createLockExpression();
     sql = sql.trim();
-    if (this.expressionMap.subQuery)
-      sql = "(" + sql + ")";
+    if (this.expressionMap.subQuery) {
+      sql = '(' + sql + ')';
+    }
     return sql;
   }
 
@@ -52,11 +53,12 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
   protected async executeCountQuery(queryRunner: QueryRunner): Promise<number> {
     this.expressionMap.queryEntity = false;
 
+    // tslint:disable-next-line:no-non-null-assertion
     const mainAlias = this.expressionMap.mainAlias!.name; // todo: will this work with "fromTableName"?
     const metadata = this.expressionMap.mainAlias!.metadata;
 
     const distinctAlias = this.escape(mainAlias);
-    let countSql: string = "";
+    let countSql = '';
     // informix does not support multiple columns in distinct and count
     // https://www.ibm.com/support/knowledgecenter/en/SSGU8G_12.1.0/com.ibm.sqls.doc/ids_sqs_1581.htm
     // https://www.ibm.com/support/knowledgecenter/en/SSGU8G_12.1.0/com.ibm.sqls.doc/ids_sqs_0185.htm
@@ -72,7 +74,7 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
       countSql = `COUNT (DISTINCT (` + metadata.primaryColumns.map((primaryColumn, index) => {
         const propertyName = this.escape(primaryColumn.databaseName);
         return `${distinctAlias}.${propertyName}`;
-      }).join(" || ") + ")) as cnt";
+      }).join(' || ') + ')) as cnt';
     }
 
     const results = await this.clone()
@@ -84,10 +86,11 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
       .select(countSql)
       .loadRawResults(queryRunner);
 
-    if (!results || !results[0] || !results[0]["cnt"])
+    if (!results || !results[0] || !results[0]['cnt']) {
       return 0;
+    }
 
-    return parseInt(results[0]["cnt"]);
+    return parseInt(results[0]['cnt'], 0);
   }
 
 
@@ -96,8 +99,9 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
    */
   protected createSelectExpression() {
 
-    if (!this.expressionMap.mainAlias)
-      throw new Error("Cannot build query because main alias is not set (call qb#from method)");
+    if (!this.expressionMap.mainAlias) {
+      throw new Error('Cannot build query because main alias is not set (call qb#from method)');
+    }
 
     // todo throw exception if selects or from is missing
 
@@ -119,7 +123,7 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
         } else {
           const hasMainAlias = this.expressionMap.selects.some(select => select.selection === join.alias.name);
           if (hasMainAlias) {
-            allSelects.push({selection: this.escape(join.alias.name!) + ".*"});
+            allSelects.push({selection: this.escape(join.alias.name!) + '.*'});
             const excludedSelect = this.expressionMap.selects.find(select => select.selection === join.alias.name);
             excludedSelects.push(excludedSelect!);
           }
@@ -135,20 +139,22 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
       }));
 
     // if still selection is empty, then simply set it to all (*)
-    if (allSelects.length === 0)
-      allSelects.push({selection: "*"});
+    if (allSelects.length === 0) {
+      allSelects.push({selection: '*'});
+    }
 
 
     // create a selection query
     const froms = this.expressionMap.aliases
-      .filter(alias => alias.type === "from" && (alias.tablePath || alias.subQuery))
+      .filter(alias => alias.type === 'from' && (alias.tablePath || alias.subQuery))
       .map(alias => {
-        if (alias.subQuery)
-          return alias.subQuery + " " + this.escape(alias.name);
+        if (alias.subQuery) {
+          return alias.subQuery + ' ' + this.escape(alias.name);
+        }
 
-        return this.getTableName(alias.tablePath!) + " " + this.escape(alias.name);
+        return this.getTableName(alias.tablePath!) + ' ' + this.escape(alias.name);
       });
-    const selection = allSelects.map(select => select.selection + (select.aliasName ? " AS " + this.escape(select.aliasName) : "")).join(", ");
+    const selection = allSelects.map(select => select.selection + (select.aliasName ? ' AS ' + this.escape(select.aliasName) : '')).join(', ');
 
     let offset: number | undefined = this.expressionMap.offset,
       limit: number | undefined = this.expressionMap.limit;
@@ -157,40 +163,42 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
       limit = this.expressionMap.take;
     }
 
-    let limitStr = "";
-    if (limit && offset)
-      limitStr = " SKIP " + offset + " FIRST " + limit;
-    else if (limit)
-      limitStr = " FIRST " + limit;
-    else if (offset)
-      limitStr = " SKIP " + offset;
+    let limitStr = '';
+    if (limit && offset) {
+      limitStr = ' SKIP ' + offset + ' FIRST ' + limit;
+    } else if (limit) {
+      limitStr = ' FIRST ' + limit;
+    } else if (offset) {
+      limitStr = ' SKIP ' + offset;
+    }
 
-    return "SELECT" + limitStr + " " + selection + " FROM " + froms.join(", ");
+    return 'SELECT' + limitStr + ' ' + selection + ' FROM ' + froms.join(', ');
   }
 
-  /**
-   * Builds column alias from given alias name and column name,
-   * If alias length is more than 29, abbreviates column name.
-   */
-  protected buildColumnAlias(aliasName: string, columnName: string): string {
-    //const columnAliasName = aliasName + "_" + columnName;
-    return super.buildColumnAlias(aliasName, columnName);//columnAliasName.toLowerCase();
-  }
+  // /**
+  //  * Builds column alias from given alias name and column name,
+  //  * If alias length is more than 29, abbreviates column name.
+  //  */
+  // protected buildColumnAlias(aliasName: string, columnName: string): string {
+  //   // const columnAliasName = aliasName + "_" + columnName;
+  //   return super.buildColumnAlias(aliasName, columnName); // columnAliasName.toLowerCase();
+  // }
 
 
   protected async loadRawResults(queryRunner: QueryRunner) {
     const [sql, parameters] = this.getQueryAndParameters();
-    const queryId = sql + " -- PARAMETERS: " + JSON.stringify(parameters);
-    const cacheOptions = typeof this.connection.options.cache === "object" ? this.connection.options.cache : {};
-    let savedQueryResultCacheOptions: QueryResultCacheOptions | undefined = undefined;
+    const queryId = sql + ' -- PARAMETERS: ' + JSON.stringify(parameters);
+    const cacheOptions = typeof this.connection.options.cache === 'object' ? this.connection.options.cache : {};
+    let savedQueryResultCacheOptions: QueryResultCacheOptions | undefined;
     if (this.connection.queryResultCache && (this.expressionMap.cache || cacheOptions.alwaysEnabled)) {
       savedQueryResultCacheOptions = await this.connection.queryResultCache.getFromCache({
         identifier: this.expressionMap.cacheId,
         query: queryId,
         duration: this.expressionMap.cacheDuration || cacheOptions.duration || 1000
       }, queryRunner);
-      if (savedQueryResultCacheOptions && !this.connection.queryResultCache.isExpired(savedQueryResultCacheOptions))
+      if (savedQueryResultCacheOptions && !this.connection.queryResultCache.isExpired(savedQueryResultCacheOptions)) {
         return JSON.parse(savedQueryResultCacheOptions.result);
+      }
     }
 
     const results: any[] = await queryRunner.query(sql, parameters);
@@ -198,8 +206,8 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
     // convert keys for informix, it speaks only lower case
     this.expressionMap.aliases.map(alias => {
       const prefix = alias.name.toLowerCase() + '_';
-      let prefixReplace = alias.name + '_';
-      if (prefixReplace == prefix) {
+      const prefixReplace = alias.name + '_';
+      if (prefixReplace === prefix) {
         return;
       }
 
@@ -210,8 +218,8 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
             result[kn] = result[k];
             delete result[k];
           }
-        })
-      })
+        });
+      });
     });
 
 
@@ -233,7 +241,8 @@ export class InformixSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entit
   //  * Specifies FROM which entity's table select/update/delete will be executed.
   //  * Also sets a main string alias of the selection data.
   //  */
-  // protected createFromAlias(entityTarget: Function | string | ((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>), aliasName?: string): Alias {
+  // protected createFromAlias(entityTarget: Function | string | ((qb: SelectQueryBuilder<any>) =>
+  // SelectQueryBuilder<any>), aliasName?: string): Alias {
   //   if (aliasName) {
   //     //aliasName = aliasName.toLowerCase();
   //   }

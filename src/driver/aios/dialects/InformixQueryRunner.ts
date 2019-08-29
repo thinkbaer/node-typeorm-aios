@@ -1,19 +1,10 @@
-import {
-  ColumnType,
-  ObjectLiteral,
-  PromiseUtils,
-  Table,
-  TableColumn,
-  TableForeignKey,
-
-  TableIndex
-} from "typeorm";
-import {AiosQueryRunner} from "../AiosQueryRunner";
-import * as _ from "lodash";
-import {TableUnique} from "typeorm/schema-builder/table/TableUnique";
-import {OrmUtils} from "typeorm/util/OrmUtils";
-import {TableIndexOptions} from "typeorm/schema-builder/options/TableIndexOptions";
-import {TableCheck} from "typeorm/schema-builder/table/TableCheck";
+import {ColumnType, ObjectLiteral, PromiseUtils, Table, TableColumn, TableForeignKey, TableIndex} from 'typeorm';
+import {AiosQueryRunner} from '../AiosQueryRunner';
+import * as _ from 'lodash';
+import {TableUnique} from 'typeorm/schema-builder/table/TableUnique';
+import {OrmUtils} from 'typeorm/util/OrmUtils';
+import {TableIndexOptions} from 'typeorm/schema-builder/options/TableIndexOptions';
+import {TableCheck} from 'typeorm/schema-builder/table/TableCheck';
 
 const QUOTING = '';
 const T_QUOTING = '';
@@ -66,7 +57,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Checks if table with the given name exist in the database.
    */
   async hasTable(tableOrName: Table | string): Promise<boolean> {
-    let table = this.parseTableName(tableOrName);
+    const table = this.parseTableName(tableOrName);
     let sql = `SELECT * FROM systables WHERE tabname = ${table.tableName}`;
     if (table.owner) {
       sql += ` and owner = '${table.owner}'`;
@@ -79,7 +70,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Checks if column with the given name exist in the given table.
    */
   async hasColumn(tableOrName: Table | string, columnName: string): Promise<boolean> {
-    let table = this.parseTableName(tableOrName);
+    const table = this.parseTableName(tableOrName);
     let sql = `SELECT * FROM syscolumns cols left join systables tab on tab.tabid = cols.tabid where tabname = ${table.tableName} AND colname = '${columnName}'`;
     if (table.owner) {
       sql += ` and owner = '${table.owner}'`;
@@ -98,7 +89,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
                     createIndices: boolean = true): Promise<void> {
     if (ifNotExist) {
       const isTableExist = await this.hasTable(table);
-      if (isTableExist) return Promise.resolve();
+      if (isTableExist) {
+        return Promise.resolve();
+      }
     }
     const upQueries: string[] = [];
     const downQueries: string[] = [];
@@ -111,8 +104,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
       table.indices.forEach(index => {
 
         // new index may be passed without name. In this case we generate index name manually.
-        if (!index.name)
+        if (!index.name) {
           index.name = this.connection.namingStrategy.indexName(table.name, index.columnNames, index.where);
+        }
         upQueries.push(this.createIndexSql(table, index));
         downQueries.push(this.dropIndexSql(table, index));
       });
@@ -124,11 +118,15 @@ export class InformixQueryRunner extends AiosQueryRunner {
   /**
    * Drops the table.
    */
-  async dropTable(target: Table | string, ifExist?: boolean, dropForeignKeys: boolean = true, dropIndices: boolean = true): Promise<void> {// It needs because if table does not exist and dropForeignKeys or dropIndices is true, we don't need
+  async dropTable(target: Table | string, ifExist?: boolean,
+                  dropForeignKeys: boolean = true, dropIndices: boolean = true): Promise<void> {
+    // It needs because if table does not exist and dropForeignKeys or dropIndices is true, we don't need
     // to perform drop queries for foreign keys and indices.
     if (ifExist) {
       const isTableExist = await this.hasTable(target);
-      if (!isTableExist) return Promise.resolve();
+      if (!isTableExist) {
+        return Promise.resolve();
+      }
     }
 
     // if dropTable called with dropForeignKeys = true, we must create foreign keys in down query.
@@ -154,7 +152,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 //      table.foreignKeys.forEach(foreignKey => upQueries.push(this.dropForeignKeySql(table, foreignKey)));
 
     upQueries.push(this.dropTableSql(table, ifExist));
-    //downQueries.push(this.createTableSql(table, createForeignKeys));
+    // downQueries.push(this.createTableSql(table, createForeignKeys));
 
     await this._executeQueries(upQueries, downQueries);
   }
@@ -206,8 +204,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
   //     const newIndexName = this.connection.namingStrategy.indexName(newTable, index.columnNames, index.where);
   //
   //     // build queries
-  //     const up = schema ? `ALTER INDEX "${schema}"."${index.name}" RENAME TO "${newIndexName}"` : `ALTER INDEX "${index.name}" RENAME TO "${newIndexName}"`;
-  //     const down = schema ? `ALTER INDEX "${schema}"."${newIndexName}" RENAME TO "${index.name}"` : `ALTER INDEX "${newIndexName}" RENAME TO "${index.name}"`;
+  //     const up = schema ? `ALTER INDEX "${schema}"."${index.name}" RENAME TO "${newIndexName}"` :
+  //     `ALTER INDEX "${index.name}" RENAME TO "${newIndexName}"`;
+  //     const down = schema ? `ALTER INDEX "${schema}"."${newIndexName}" RENAME TO "${index.name}"` :
+  //     `ALTER INDEX "${newIndexName}" RENAME TO "${index.name}"`;
   //     upQueries.push(up);
   //     downQueries.push(down);
   //
@@ -249,7 +249,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const downQueries: string[] = [];
 
     upQueries.push(`ALTER TABLE ${this.escapeTableName(table)} ADD ${this.buildCreateColumnSql(table, column)}`);
-    let exists = table.findColumnByName(column.name);
+    const exists = table.findColumnByName(column.name);
     if (exists) {
       downQueries.push(`ALTER TABLE ${this.escapeTableName(table)} DROP ${C_QUOTING}${column.name}${C_QUOTING}`);
     }
@@ -295,7 +295,6 @@ export class InformixQueryRunner extends AiosQueryRunner {
       if (exists) {
         downQueries.push(this.dropUniqueConstraintSql(clonedTable, uniqueConstraint));
       }
-
     }
 
     await this._executeQueries(upQueries, downQueries);
@@ -314,11 +313,14 @@ export class InformixQueryRunner extends AiosQueryRunner {
   /**
    * Renames column in the given table.
    */
-  async renameColumn(tableOrName: Table | string, oldTableColumnOrName: TableColumn | string, newTableColumnOrName: TableColumn | string): Promise<void> {
+  async renameColumn(tableOrName: Table | string,
+                     oldTableColumnOrName: TableColumn | string, newTableColumnOrName: TableColumn | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
-    const oldColumn = oldTableColumnOrName instanceof TableColumn ? oldTableColumnOrName : table.columns.find(c => c.name === oldTableColumnOrName);
-    if (!oldColumn)
+    const oldColumn = oldTableColumnOrName instanceof TableColumn ? oldTableColumnOrName :
+      table.columns.find(c => c.name === oldTableColumnOrName);
+    if (!oldColumn) {
       throw new Error(`Column "${oldTableColumnOrName}" was not found in the "${table.name}" table.`);
+    }
 
     let newColumn;
     if (newTableColumnOrName instanceof TableColumn) {
@@ -344,8 +346,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const oldColumn = oldTableColumnOrName instanceof TableColumn
       ? oldTableColumnOrName
       : table.columns.find(column => column.name === oldTableColumnOrName);
-    if (!oldColumn)
+    if (!oldColumn) {
       throw new Error(`Column "${oldTableColumnOrName}" was not found in the "${table.name}" table.`);
+    }
 
     if (oldColumn.type !== newColumn.type || oldColumn.length !== newColumn.length) {
       // To avoid data conversion, we just recreate column
@@ -361,7 +364,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
       if (oldColumn.name !== newColumn.name) {
         // rename column
         upQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}${oldColumn.name}${C_QUOTING} TO ${C_QUOTING}${newColumn.name}${C_QUOTING}`);
-        //downQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}${newColumn.name}${C_QUOTING} TO ${C_QUOTING}${oldColumn.name}${C_QUOTING}`);
+        // downQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}${newColumn.name}${C_QUOTING} TO ${C_QUOTING}${oldColumn.name}${C_QUOTING}`);
 
         // rename column primary key constraint
         if (oldColumn.isPrimary === true) {
@@ -379,17 +382,20 @@ export class InformixQueryRunner extends AiosQueryRunner {
           const newPkName = this.connection.namingStrategy.primaryKeyName(clonedTable, columnNames);
 
           upQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${oldPkName}${I_QUOTING} TO ${I_QUOTING}${newPkName}${I_QUOTING}`);
-          //downQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newPkName}${I_QUOTING} TO ${I_QUOTING}${oldPkName}${I_QUOTING}`);
+          // downQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.
+          // ${I_QUOTING}${newPkName}${I_QUOTING} TO ${I_QUOTING}${oldPkName}${I_QUOTING}`);
         }
 
         // rename column sequence
-        if (oldColumn.isGenerated === true && newColumn.generationStrategy === "increment") {
-          /* TODO!
-          const up = schema ? `ALTER SEQUENCE "${schema}"."${seqName}" RENAME TO "${newSeqName}"` : `ALTER SEQUENCE "${seqName}" RENAME TO "${newSeqName}"`;
-          const down = schema ? `ALTER SEQUENCE "${schema}"."${newSeqName}" RENAME TO "${seqName}"` : `ALTER SEQUENCE "${newSeqName}" RENAME TO "${seqName}"`;
-          upQueries.push(up);
-          downQueries.push(down);
-          */
+        if (oldColumn.isGenerated === true && newColumn.generationStrategy === 'increment') {
+          // /* TODO!
+          // const up = schema ? `ALTER SEQUENCE "${schema}"."${seqName}" RENAME TO "${newSeqName}"` :
+          // `ALTER SEQUENCE "${seqName}" RENAME TO "${newSeqName}"`;
+          // const down = schema ? `ALTER SEQUENCE "${schema}"."${newSeqName}" RENAME TO "${seqName}"` :
+          // `ALTER SEQUENCE "${newSeqName}" RENAME TO "${seqName}"`;
+          // upQueries.push(up);
+          // downQueries.push(down);
+          // */
         }
 
         // rename unique constraints
@@ -401,7 +407,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
           // build queries
           upQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${unique.name}${I_QUOTING} TO ${I_QUOTING}${newUniqueName}${I_QUOTING}`);
-          //downQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newUniqueName}${I_QUOTING} TO ${I_QUOTING}${unique.name}${I_QUOTING}`);
+          // downQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newUniqueName}${I_QUOTING} TO ${I_QUOTING}${unique.name}${I_QUOTING}`);
 
           // replace constraint name
           unique.name = newUniqueName;
@@ -417,9 +423,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
           // build queries
           const up = `RENAME INDEX ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${index.name}${I_QUOTING} TO ${I_QUOTING}${newIndexName}${I_QUOTING}`;
-          //const down = `RENAME INDEX ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newIndexName}${I_QUOTING} TO ${index.name}`;
+          // const down = `RENAME INDEX ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.
+          // ${I_QUOTING}${newIndexName}${I_QUOTING} TO ${index.name}`;
           upQueries.push(up);
-          //downQueries.push(down);
+          // downQueries.push(down);
 
           // replace constraint name
           index.name = newIndexName;
@@ -434,7 +441,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
           // build queries
           upQueries.push(`RENAME CONSTRAINT  ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${foreignKey.name}${I_QUOTING} TO ${I_QUOTING}${newForeignKeyName}${I_QUOTING}`);
-          //downQueries.push(`RENAME CONSTRAINT  ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newForeignKeyName}${I_QUOTING} TO ${I_QUOTING}${foreignKey.name}${I_QUOTING}`);
+          // downQueries.push(`RENAME CONSTRAINT  ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newForeignKeyName}${I_QUOTING} TO ${I_QUOTING}${foreignKey.name}${I_QUOTING}`);
 
           // replace constraint name
           foreignKey.name = newForeignKeyName;
@@ -531,8 +538,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
   async dropColumn(tableOrName: Table | string, columnOrName: TableColumn | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
     const column = columnOrName instanceof TableColumn ? columnOrName : table.findColumnByName(columnOrName);
-    if (!column)
+    if (!column) {
       throw new Error(`Column "${columnOrName}" was not found in table "${table.name}"`);
+    }
 
     const clonedTable = table.clone();
     const upQueries: string[] = [];
@@ -542,7 +550,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     if (column.isPrimary) {
       const columnNames = clonedTable.primaryColumns.map(primaryColumn => `${C_QUOTING}${primaryColumn.name}${C_QUOTING}`);
       upQueries.push(this.dropPrimaryKeySql(clonedTable));
-      //downQueries.push(this.createPrimaryKeySql(clonedTable, columnNames));
+      // downQueries.push(this.createPrimaryKeySql(clonedTable, columnNames));
 
       // update column in table
       const tableColumn = clonedTable.findColumnByName(column.name);
@@ -551,7 +559,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
       // if primary key have multiple columns, we must recreate it without dropped column
       if (clonedTable.primaryColumns.length > 0) {
         const columnNames = clonedTable.primaryColumns.map(primaryColumn => `"${primaryColumn.name}"`);
-        //upQueries.push(this.createPrimaryKeySql(clonedTable, columnNames));
+        // upQueries.push(this.createPrimaryKeySql(clonedTable, columnNames));
         downQueries.push(this.dropPrimaryKeySql(clonedTable));
       }
     }
@@ -561,7 +569,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     if (columnIndex) {
       clonedTable.indices.splice(clonedTable.indices.indexOf(columnIndex), 1);
       upQueries.push(this.dropIndexSql(table, columnIndex));
-      //downQueries.push(this.createIndexSql(table, columnIndex));
+      // downQueries.push(this.createIndexSql(table, columnIndex));
     }
 
     // TODO drop column check
@@ -569,7 +577,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     if (columnCheck) {
       clonedTable.checks.splice(clonedTable.checks.indexOf(columnCheck), 1);
       upQueries.push(this.dropCheckConstraintSql(table, columnCheck));
-      //downQueries.push(this.createCheckConstraintSql(table, columnCheck));
+      // downQueries.push(this.createCheckConstraintSql(table, columnCheck));
     }
 
     // drop column unique
@@ -577,11 +585,11 @@ export class InformixQueryRunner extends AiosQueryRunner {
     if (columnUnique) {
       clonedTable.uniques.splice(clonedTable.uniques.indexOf(columnUnique), 1);
       upQueries.push(this.dropUniqueConstraintSql(table, columnUnique));
-      //downQueries.push(this.createUniqueConstraintSql(table, columnUnique));
+      // downQueries.push(this.createUniqueConstraintSql(table, columnUnique));
     }
 
     upQueries.push(`ALTER TABLE ${this.escapeTableName(table)} DROP ${C_QUOTING}${column.name}${C_QUOTING}`);
-    //downQueries.push(`ALTER TABLE ${this.escapeTableName(table)} ADD ${this.buildCreateColumnSql(table, column)}`);
+    // downQueries.push(`ALTER TABLE ${this.escapeTableName(table)} ADD ${this.buildCreateColumnSql(table, column)}`);
 
     await this._executeQueries(upQueries, downQueries);
 
@@ -607,8 +615,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
     // mark columns as primary, because dropPrimaryKeySql build constraint name from table primary column names.
     clonedTable.columns.forEach(column => {
-      if (columnNames.find(columnName => columnName === column.name))
+      if (columnNames.find(columnName => columnName === column.name)) {
         column.isPrimary = true;
+      }
     });
     const down = this.dropPrimaryKeySql(clonedTable);
 
@@ -617,11 +626,11 @@ export class InformixQueryRunner extends AiosQueryRunner {
   }
 
   private _alterTableDropConstraint(table: Table, cnstName: string): string {
-    return `ALTER TABLE ${this.escapeTableName(table)} DROP CONSTRAINT ${I_QUOTING}${cnstName}${I_QUOTING}`
+    return `ALTER TABLE ${this.escapeTableName(table)} DROP CONSTRAINT ${I_QUOTING}${cnstName}${I_QUOTING}`;
   }
 
   private _alterTableAddConstraint(table: Table, type: 'PRIMARY KEY' | 'UNIQUE' | 'CHECK', keys: string, cnstName: string): string {
-    return `ALTER TABLE ${this.escapeTableName(table)} ADD CONSTRAINT ${type} (${keys}) CONSTRAINT ${I_QUOTING}${cnstName}${I_QUOTING}`
+    return `ALTER TABLE ${this.escapeTableName(table)} ADD CONSTRAINT ${type} (${keys}) CONSTRAINT ${I_QUOTING}${cnstName}${I_QUOTING}`;
   }
 
   /**
@@ -638,7 +647,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const primaryColumns = clonedTable.primaryColumns;
     if (primaryColumns.length > 0) {
       const pkName = this.connection.namingStrategy.primaryKeyName(clonedTable.name, primaryColumns.map(column => column.name));
-      const columnNamesString = primaryColumns.map(column => `"${column.name}"`).join(", ");
+      const columnNamesString = primaryColumns.map(column => `"${column.name}"`).join(', ');
       upQueries.push(this._alterTableDropConstraint(table, pkName));
       downQueries.push(this._alterTableAddConstraint(table, 'PRIMARY KEY', columnNamesString, pkName));
     }
@@ -649,7 +658,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
       .forEach(column => column.isPrimary = true);
 
     const pkName = this.connection.namingStrategy.primaryKeyName(clonedTable.name, columnNames);
-    const columnNamesString = columnNames.map(columnName => `"${columnName}"`).join(", ");
+    const columnNamesString = columnNames.map(columnName => `"${columnName}"`).join(', ');
     upQueries.push(this._alterTableAddConstraint(table, 'PRIMARY KEY', columnNamesString, pkName));
     downQueries.push(this._alterTableDropConstraint(table, pkName));
 
@@ -677,8 +686,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
 
     // new unique constraint may be passed without name. In this case we generate unique name manually.
-    if (!uniqueConstraint.name)
+    if (!uniqueConstraint.name) {
       uniqueConstraint.name = this.connection.namingStrategy.uniqueConstraintName(table.name, uniqueConstraint.columnNames);
+    }
 
     const up = this.createUniqueConstraintSql(table, uniqueConstraint);
     const down = this.dropUniqueConstraintSql(table, uniqueConstraint);
@@ -699,8 +709,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
   async dropUniqueConstraint(tableOrName: Table | string, uniqueOrName: TableUnique | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
     const uniqueConstraint = uniqueOrName instanceof TableUnique ? uniqueOrName : table.uniques.find(u => u.name === uniqueOrName);
-    if (!uniqueConstraint)
+    if (!uniqueConstraint) {
       throw new Error(`Supplied unique constraint was not found in table ${table.name}`);
+    }
 
     const up = this.dropUniqueConstraintSql(table, uniqueConstraint);
     const down = this.createUniqueConstraintSql(table, uniqueConstraint);
@@ -722,8 +733,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
 
     // new unique constraint may be passed without name. In this case we generate unique name manually.
-    if (!checkConstraint.name)
+    if (!checkConstraint.name) {
       checkConstraint.name = this.connection.namingStrategy.checkConstraintName(table.name, checkConstraint.expression!);
+    }
 
     const up = this.createCheckConstraintSql(table, checkConstraint);
     const down = this.dropCheckConstraintSql(table, checkConstraint);
@@ -745,8 +757,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
   async dropCheckConstraint(tableOrName: Table | string, checkOrName: TableCheck | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
     const checkConstraint = checkOrName instanceof TableCheck ? checkOrName : table.checks.find(c => c.name === checkOrName);
-    if (!checkConstraint)
+    if (!checkConstraint) {
       throw new Error(`Supplied check constraint was not found in table ${table.name}`);
+    }
 
     const up = this.dropCheckConstraintSql(table, checkConstraint);
     const down = this.createCheckConstraintSql(table, checkConstraint);
@@ -770,8 +783,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const foreignKeyExists = table.foreignKeys.find(fk => fk.name === foreignKey.name);
 
     // new FK may be passed without name. In this case we generate FK name manually.
-    if (!foreignKey.name)
+    if (!foreignKey.name) {
       foreignKey.name = this.connection.namingStrategy.foreignKeyName(table.name, foreignKey.columnNames);
+    }
 
     const up = this.createForeignKeySql(table, foreignKey);
     const down = [];
@@ -795,12 +809,14 @@ export class InformixQueryRunner extends AiosQueryRunner {
    */
   async dropForeignKey(tableOrName: Table | string, foreignKeyOrName: TableForeignKey | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
-    const foreignKey = foreignKeyOrName instanceof TableForeignKey ? foreignKeyOrName : table.foreignKeys.find(fk => fk.name === foreignKeyOrName);
-    if (!foreignKey)
+    const foreignKey = foreignKeyOrName instanceof TableForeignKey ? foreignKeyOrName :
+      table.foreignKeys.find(fk => fk.name === foreignKeyOrName);
+    if (!foreignKey) {
       throw new Error(`Supplied foreign key was not found in table ${table.name}`);
+    }
 
     const up = this.dropForeignKeySql(table, foreignKey);
-    //const down = this.createForeignKeySql(table, foreignKey);
+    // const down = this.createForeignKeySql(table, foreignKey);
     await this._executeQueries([up], []);
     table.removeForeignKey(foreignKey);
   }
@@ -819,8 +835,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
 
     // new index may be passed without name. In this case we generate index name manually.
-    if (!index.name)
+    if (!index.name) {
       index.name = this.connection.namingStrategy.indexName(table.name, index.columnNames, index.where);
+    }
 
     const up = this.createIndexSql(table, index);
     const down = this.dropIndexSql(table, index);
@@ -841,8 +858,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
   async dropIndex(tableOrName: Table | string, indexOrName: TableIndex | string): Promise<void> {
     const table = tableOrName instanceof Table ? tableOrName : await this.getCachedTable(tableOrName);
     const index = indexOrName instanceof TableIndex ? indexOrName : table.indices.find(i => i.name === indexOrName);
-    if (!index)
+    if (!index) {
       throw new Error(`Supplied index was not found in table ${table.name}`);
+    }
 
     if (!index['autocreated']) {
       const up = this.dropIndexSql(table, index);
@@ -888,7 +906,8 @@ export class InformixQueryRunner extends AiosQueryRunner {
   //   try {
   //     // ignore spatial_ref_sys; it's a special table supporting PostGIS
   //     // TODO generalize this as this.driver.ignoreTables
-  //     const selectDropsQuery = `SELECT 'DROP TABLE IF EXISTS "' || schemaname || '"."' || tablename || '" CASCADE;' as "query" FROM "pg_tables" WHERE "schemaname" IN (${schemaNamesString}) AND tablename NOT IN ('spatial_ref_sys')`;
+  //     const selectDropsQuery = `SELECT 'DROP TABLE IF EXISTS "' || schemaname || '"."' || tablename ||
+  //     '" CASCADE;' as "query" FROM "pg_tables" WHERE "schemaname" IN (${schemaNamesString}) AND tablename NOT IN ('spatial_ref_sys')`;
   //     const dropQueries: ObjectLiteral[] = await this.query(selectDropsQuery);
   //     await Promise.all(dropQueries.map(q => this.query(q["query"])));
   //     await this.dropEnumTypes(schemaNamesString);
@@ -913,19 +932,20 @@ export class InformixQueryRunner extends AiosQueryRunner {
    */
   protected async loadTables(tableNames: string[]): Promise<Table[]> {
     // if no tables given then no need to proceed
-    if (!tableNames || !tableNames.length)
+    if (!tableNames || !tableNames.length) {
       return [];
+    }
 
 //    const currentSchemaQuery = await this.query(`SELECT * FROM current_schema()`);
 //    const currentSchema = currentSchemaQuery[0]["current_schema"];
 
     const tablesCondition = tableNames.map(tableName => {
-      let [schema, name] = tableName.split(".");
+      let [schema, name] = tableName.split('.');
       if (!name) {
         name = schema;
       }
       return `(t.tabname = '${name}')`;
-    }).join(" OR ");
+    }).join(' OR ');
 
     const tablesSql = 'SELECT t.tabname as table_name, t.owner as table_owner FROM systables t WHERE ' + tablesCondition;
     const columnsSql = 'SELECT ' +
@@ -978,8 +998,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
       'r.primary as reference_constraint_id,' +
       'rt.tabname as reference_table_name,' +
       'rt.owner as reference_table_owner,' +
-      "CASE i.idxtype WHEN 'U' THEN 'TRUE' ELSE 'FALSE' END AS is_unique, " +
-      "CASE c.constrtype WHEN 'P' THEN 'PRIMARY' WHEN 'U' THEN 'UNIQUE' WHEN 'C' THEN 'CHECK' WHEN 'N' THEN 'NOT NULL' WHEN 'T' THEN 'TABLE' WHEN 'R' THEN 'REFERENCE' END AS constraint_type " +
+      'CASE i.idxtype WHEN \'U\' THEN \'TRUE\' ELSE \'FALSE\' END AS is_unique, ' +
+      'CASE c.constrtype WHEN \'P\' THEN \'PRIMARY\' WHEN \'U\' THEN \'UNIQUE\' WHEN \'C\' THEN \'CHECK\' WHEN \'N\' ' +
+      'THEN \'NOT NULL\' WHEN \'T\' THEN \'TABLE\' WHEN \'R\' THEN \'REFERENCE\' END AS constraint_type ' +
       'FROM sysconstraints c ' +
       'inner join systables t on t.tabid = c.tabid ' +
       'left join sysindexes i on t.tabid = i.tabid and i.idxname = c.idxname and t.owner = i.owner ' +
@@ -994,7 +1015,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
       't.tabname as table_name, ' +
       't.owner as table_owner, ' +
       'i.idxname as constraint_name, ' +
-      "CASE i.idxtype WHEN 'U' THEN 'TRUE' ELSE 'FALSE' END AS is_unique, " +
+      'CASE i.idxtype WHEN \'U\' THEN \'TRUE\' ELSE \'FALSE\' END AS is_unique, ' +
       'i.idxtype as type_name,' +
       'i.part1 as column_no_01, ' +
       'i.part2 as column_no_02, ' +
@@ -1062,8 +1083,9 @@ export class InformixQueryRunner extends AiosQueryRunner {
     ]);
 
     // if tables were not found in the db, no need to proceed
-    if (!dbTables.length)
+    if (!dbTables.length) {
       return [];
+    }
 
     // create tables for loaded tables
     return Promise.all(dbTables.map(async dbTable => {
@@ -1071,30 +1093,30 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
       // We do not need to join schema name, when database is by default.
       // In this case we need local variable `tableFullName` for below comparision.
-      const owner = dbTable["table_owner"];
-      table.name = this.driver.buildTableName(dbTable["table_name"], owner);
-      (<any>table).no = dbTable["table_no"];
-      const tableFullName = this.driver.buildTableName(dbTable["table_name"], dbTable["table_owner"]);
+      const owner = dbTable['table_owner'];
+      table.name = this.driver.buildTableName(dbTable['table_name'], owner);
+      (<any>table).no = dbTable['table_no'];
+      const tableFullName = this.driver.buildTableName(dbTable['table_name'], dbTable['table_owner']);
 
       // create columns from the loaded columns
       table.columns = await Promise.all(dbColumns
-        .filter(dbColumn => this.driver.buildTableName(dbColumn["table_name"], dbColumn["table_owner"]) === tableFullName)
+        .filter(dbColumn => this.driver.buildTableName(dbColumn['table_name'], dbColumn['table_owner']) === tableFullName)
         .map(async dbColumn => {
 
           const columnConstraints = dbConstraints.filter(dbConstraint => {
-            if (this.driver.buildTableName(dbConstraint["table_name"],
-              dbConstraint["table_owner"]) === tableFullName) {
+            if (this.driver.buildTableName(dbConstraint['table_name'],
+              dbConstraint['table_owner']) === tableFullName) {
 
-              if (dbConstraint['col_no'] == dbColumn['column_no']) {
+              if (dbConstraint['col_no'] === dbColumn['column_no']) {
                 return true;
               }
 
               for (let i = 1; i <= 16; i++) {
-                let k = "0".repeat(2 - ((i + "").length)) + i;
-                if (dbConstraint['column_no_' + k] == 0) {
+                const k = '0'.repeat(2 - ((i + '').length)) + i;
+                if (dbConstraint['column_no_' + k] === 0) {
                   return false;
                 }
-                if (dbConstraint['column_no_' + k] == dbColumn['column_no']) {
+                if (dbConstraint['column_no_' + k] === dbColumn['column_no']) {
                   return true;
                 }
               }
@@ -1106,20 +1128,20 @@ export class InformixQueryRunner extends AiosQueryRunner {
           });
 
           const tableColumn = new TableColumn();
-          (<any>tableColumn).no = dbColumn["column_no"];
+          (<any>tableColumn).no = dbColumn['column_no'];
           tableColumn.name = dbColumn['column_name'];
-          let colType = dbColumn["column_type"];
+          let colType = dbColumn['column_type'];
 
 
-          let checks = {
-            0x0100: false,// null not allowed
-            0x0200: false,// Value is from a host variable
-            0x0400: false,// Float-to-decimal for networked database server
-            0x0800: false,// DISTINCT data type
+          const checks = {
+            0x0100: false, // null not allowed
+            0x0200: false, // Value is from a host variable
+            0x0400: false, // Float-to-decimal for networked database server
+            0x0800: false, // DISTINCT data type
             0x1000: false, // Named ROW type
-            0x2000: false,// DISTINCT type from LVARCHAR base type
-            0x4000: false,// DISTINCT type from BOOLEAN base type
-            0x8000: false,// Collection is processed on client system
+            0x2000: false, // DISTINCT type from LVARCHAR base type
+            0x4000: false, // DISTINCT type from BOOLEAN base type
+            0x8000: false, // Collection is processed on client system
           };
 
           Object.keys(checks).forEach(check => {
@@ -1133,7 +1155,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
             tableColumn.type = InformixQueryRunner.typeMap[colType].toLowerCase();
             tableColumn['data_type'] = dbColumn['extended_column_label'];
           } else {
-            let typeDesc = dbColumn['extended_column_label'] ? dbColumn['extended_column_label'].split('(', 1).shift() : null;
+            const typeDesc = dbColumn['extended_column_label'] ? dbColumn['extended_column_label'].split('(', 1).shift() : null;
             if (typeDesc) {
               tableColumn.type = typeDesc.toLowerCase();
               tableColumn['data_type'] = dbColumn['extended_column_label'];
@@ -1142,53 +1164,53 @@ export class InformixQueryRunner extends AiosQueryRunner {
             }
           }
 
-          if (tableColumn.type === "numeric" || tableColumn.type === "decimal" || tableColumn.type === "float") {
+          if (tableColumn.type === 'numeric' || tableColumn.type === 'decimal' || tableColumn.type === 'float') {
             // If one of these properties was set, and another was not, Postgres sets '0' in to unspecified property
             // we set 'undefined' in to unspecified property to avoid changing column on sync
-            if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
-              tableColumn.precision = dbColumn["numeric_precision"];
-            } else if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
+            if (dbColumn['numeric_precision'] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn['numeric_precision'])) {
+              tableColumn.precision = dbColumn['numeric_precision'];
+            } else if (dbColumn['numeric_scale'] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn['numeric_scale'])) {
               tableColumn.precision = undefined;
             }
-            if (dbColumn["numeric_scale"] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn["numeric_scale"])) {
-              tableColumn.scale = dbColumn["numeric_scale"];
-            } else if (dbColumn["numeric_precision"] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["numeric_precision"])) {
+            if (dbColumn['numeric_scale'] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn['numeric_scale'])) {
+              tableColumn.scale = dbColumn['numeric_scale'];
+            } else if (dbColumn['numeric_precision'] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn['numeric_precision'])) {
               tableColumn.scale = undefined;
             }
           }
 
-          if (tableColumn.type === "interval"
-            || tableColumn.type === "time without time zone"
-            || tableColumn.type === "time with time zone"
-            || tableColumn.type === "timestamp without time zone"
-            || tableColumn.type === "timestamp with time zone") {
-            tableColumn.precision = !this.isDefaultColumnPrecision(table, tableColumn, dbColumn["datetime_precision"]) ? dbColumn["datetime_precision"] : undefined;
+          if (tableColumn.type === 'interval'
+            || tableColumn.type === 'time without time zone'
+            || tableColumn.type === 'time with time zone'
+            || tableColumn.type === 'timestamp without time zone'
+            || tableColumn.type === 'timestamp with time zone') {
+            tableColumn.precision = !this.isDefaultColumnPrecision(table, tableColumn, dbColumn['datetime_precision']) ? dbColumn['datetime_precision'] : undefined;
           }
 
           // check only columns that have length property
           if (this.driver.withLengthColumnTypes.indexOf(tableColumn.type as ColumnType) !== -1 && (dbColumn['column_length'] || dbColumn['extended_column_length'])) {
             const length = dbColumn['column_length'] > dbColumn['extended_column_length'] ? dbColumn['column_length'] : dbColumn['extended_column_length'];
-            tableColumn.length = !this.isDefaultColumnLength(table, tableColumn, length) ? length + '' : "";
+            tableColumn.length = !this.isDefaultColumnLength(table, tableColumn, length) ? length + '' : '';
           }
 
-          tableColumn.isNullable = columnConstraints.find(constraint => constraint["constraint_type"] === "NOT NULL") ? false : true;
-          tableColumn.isPrimary = columnConstraints.find(constraint => constraint["constraint_type"] === "PRIMARY") ? true : false;
+          tableColumn.isNullable = columnConstraints.find(constraint => constraint['constraint_type'] === 'NOT NULL') ? false : true;
+          tableColumn.isPrimary = columnConstraints.find(constraint => constraint['constraint_type'] === 'PRIMARY') ? true : false;
 
-          if (tableColumn.type == 'serial') {
+          if (tableColumn.type === 'serial') {
             tableColumn.isPrimary = true;
             tableColumn.isGenerated = true;
-            tableColumn.generationStrategy = "increment";
+            tableColumn.generationStrategy = 'increment';
           }
 
-          const uniqueConstraint = columnConstraints.find(constraint => constraint["constraint_type"] === 'UNIQUE');
+          const uniqueConstraint = columnConstraints.find(constraint => constraint['constraint_type'] === 'UNIQUE');
           const isConstraintComposite = uniqueConstraint && uniqueConstraint['column_no_02'] > 0;
           tableColumn.isUnique = !!uniqueConstraint && !isConstraintComposite;
 
-          if (dbColumn["column_default"] !== null && dbColumn["column_default"] !== undefined) {
-            tableColumn.default = dbColumn["column_default"];
+          if (dbColumn['column_default'] !== null && dbColumn['column_default'] !== undefined) {
+            tableColumn.default = dbColumn['column_default'];
           }
 
-          tableColumn.comment = ""; // dbColumn["COLUMN_COMMENT"];
+          tableColumn.comment = ''; // dbColumn["COLUMN_COMMENT"];
 
           return tableColumn;
         }));
@@ -1236,35 +1258,35 @@ export class InformixQueryRunner extends AiosQueryRunner {
       // find foreign key constraints of table, group them by constraint name and build TableForeignKey.
 
       const tableForeignKeyConstraints = OrmUtils.uniq(dbConstraints.filter(dbForeignKey => {
-        return this.driver.buildTableName(dbForeignKey["table_name"], dbForeignKey["table_owner"]) === tableFullName && dbForeignKey['constraint_type'] === 'REFERENCE';
-      }), dbForeignKey => dbForeignKey["constraint_name"]);
+        return this.driver.buildTableName(dbForeignKey['table_name'], dbForeignKey['table_owner']) === tableFullName && dbForeignKey['constraint_type'] === 'REFERENCE';
+      }), dbForeignKey => dbForeignKey['constraint_name']);
 
       table.foreignKeys = tableForeignKeyConstraints.map(dbForeignKey => {
-        const foreignKeys = dbConstraints.find(dbFk => dbFk["constraint_id"] === dbForeignKey["reference_constraint_id"]);
+        const foreignKeys = dbConstraints.find(dbFk => dbFk['constraint_id'] === dbForeignKey['reference_constraint_id']);
         // remove automaticaly generated index
-        _.remove(dbIndices, x => x['constraint_name'] == dbForeignKey['index_name']);
+        _.remove(dbIndices, x => x['constraint_name'] === dbForeignKey['index_name']);
 
         // if referenced table located in currently used schema, we don't need to concat schema name to table name.
-        const schema = dbForeignKey["reference_table_owner"] === this.driver.options.user ? undefined : dbTable["reference_table_owner"];
-        const referencedTableName = this.driver.buildTableName(dbForeignKey["reference_table_name"], schema);
+        const schema = dbForeignKey['reference_table_owner'] === this.driver.options.user ? undefined : dbTable['reference_table_owner'];
+        const referencedTableName = this.driver.buildTableName(dbForeignKey['reference_table_name'], schema);
 
         return new TableForeignKey({
-          name: dbForeignKey["constraint_name"],
+          name: dbForeignKey['constraint_name'],
           columnNames: dbColumns.filter(c =>
-            c['column_no'] == dbForeignKey['column_no_01'] ||
-            c['column_no'] == dbForeignKey['column_no_02'] ||
-            c['column_no'] == dbForeignKey['column_no_03'] ||
-            c['column_no'] == dbForeignKey['column_no_04'] ||
-            c['column_no'] == dbForeignKey['column_no_05'] // TODO till 16 ;)
-          ).map(dbFk => dbFk["column_name"]),
+            c['column_no'] === dbForeignKey['column_no_01'] ||
+            c['column_no'] === dbForeignKey['column_no_02'] ||
+            c['column_no'] === dbForeignKey['column_no_03'] ||
+            c['column_no'] === dbForeignKey['column_no_04'] ||
+            c['column_no'] === dbForeignKey['column_no_05'] // TODO till 16 ;)
+          ).map(dbFk => dbFk['column_name']),
           referencedTableName: referencedTableName,
           referencedColumnNames: _.uniq(dbColumns.filter(c =>
-            c['column_no'] == foreignKeys['column_no_01'] ||
-            c['column_no'] == foreignKeys['column_no_02'] ||
-            c['column_no'] == foreignKeys['column_no_03'] ||
-            c['column_no'] == foreignKeys['column_no_04'] ||
-            c['column_no'] == foreignKeys['column_no_05'] // TODO till 16 ;)
-          ).map(dbFk => dbFk["column_name"])),
+            c['column_no'] === foreignKeys['column_no_01'] ||
+            c['column_no'] === foreignKeys['column_no_02'] ||
+            c['column_no'] === foreignKeys['column_no_03'] ||
+            c['column_no'] === foreignKeys['column_no_04'] ||
+            c['column_no'] === foreignKeys['column_no_05'] // TODO till 16 ;)
+          ).map(dbFk => dbFk['column_name'])),
           onDelete: undefined, // TODO !!!
           onUpdate: undefined
         });
@@ -1273,31 +1295,31 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
       // find index constraints of table, group them by constraint name and build TableIndex.
       const tableIndexConstraints = OrmUtils.uniq(dbIndices.filter(dbIndex => {
-        return this.driver.buildTableName(dbIndex["table_name"], dbIndex["table_owner"]) === tableFullName;
-      }), dbIndex => dbIndex["constraint_name"]);
+        return this.driver.buildTableName(dbIndex['table_name'], dbIndex['table_owner']) === tableFullName;
+      }), dbIndex => dbIndex['constraint_name']);
 
       table.indices = tableIndexConstraints.map(constraint => {
         // const indices = dbIndices.filter(index => index["constraint_name"] === constraint["constraint_name"]);
-        let colNames = [];
+        const colNames = [];
 
         let isAutocreated = false;
         for (let i = 1; i <= 16; i++) {
-          let k = "0".repeat(2 - ((i + "").length)) + i;
-          if (constraint['column_no_' + k] == 0) {
+          const k = '0'.repeat(2 - ((i + '').length)) + i;
+          if (constraint['column_no_' + k] === 0) {
             break;
           }
-          let col = table.columns.find(c => c['no'] == constraint['column_no_' + k]);
+          const col = table.columns.find(c => c['no'] === constraint['column_no_' + k]);
           colNames.push(col.name);
           isAutocreated = isAutocreated || col.isPrimary;
         }
 
         if (!isAutocreated) {
-          let index = new TableIndex(<TableIndexOptions>{
+          const index = new TableIndex(<TableIndexOptions>{
             table: table,
-            name: constraint["constraint_name"],
+            name: constraint['constraint_name'],
             columnNames: colNames,
-            isUnique: constraint["is_unique"] === "TRUE",
-            where: constraint["condition"],
+            isUnique: constraint['is_unique'] === 'TRUE',
+            where: constraint['condition'],
             isSpatial: false,
             isFulltext: false
           });
@@ -1355,7 +1377,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Builds create table sql.
    */
   protected createTableSql(table: Table, createForeignKeys?: boolean): string {
-    const columnDefinitions = table.columns.map(column => this.buildCreateColumnSql(table, column)).join(", ");
+    const columnDefinitions = table.columns.map(column => this.buildCreateColumnSql(table, column)).join(', ');
     let sql = `CREATE TABLE ${this.escapeTableName(table)} (${columnDefinitions}`;
 
     table.columns
@@ -1363,19 +1385,20 @@ export class InformixQueryRunner extends AiosQueryRunner {
       .forEach(column => {
         const isUniqueExist = table.uniques.some(unique =>
           unique.columnNames.length === 1 && unique.columnNames[0] === column.name);
-        if (!isUniqueExist)
+        if (!isUniqueExist) {
           table.uniques.push(new TableUnique({
             name: this.connection.namingStrategy.uniqueConstraintName(table.name, [column.name]),
             columnNames: [column.name]
           }));
+        }
       });
 
     if (table.uniques.length > 0) {
       const uniquesSql = table.uniques.map(unique => {
         const uniqueName = unique.name ? unique.name : this.connection.namingStrategy.uniqueConstraintName(table.name, unique.columnNames);
-        const columnNames = unique.columnNames.map(columnName => `${this.handleSqlColumn(columnName)}`).join(", ");
+        const columnNames = unique.columnNames.map(columnName => `${this.handleSqlColumn(columnName)}`).join(', ');
         return `UNIQUE (${columnNames}) CONSTRAINT ${uniqueName}`;
-      }).join(", ");
+      }).join(', ');
 
       sql += `, ${uniquesSql}`;
     }
@@ -1384,26 +1407,29 @@ export class InformixQueryRunner extends AiosQueryRunner {
       const checksSql = table.checks.map(check => {
         const checkName = check.name ? check.name : this.connection.namingStrategy.checkConstraintName(table.name, check.expression!);
         return `CHECK (${check.expression}) CONSTRAINT "${checkName}"`;
-      }).join(", ");
+      }).join(', ');
 
       sql += `, ${checksSql}`;
     }
 
     if (table.foreignKeys.length > 0 && createForeignKeys) {
       const foreignKeysSql = table.foreignKeys.map(fk => {
-        const columnNames = fk.columnNames.map(columnName => `"${columnName}"`).join(", ");
-        if (!fk.name)
+        const columnNames = fk.columnNames.map(columnName => `"${columnName}"`).join(', ');
+        if (!fk.name) {
           fk.name = this.connection.namingStrategy.foreignKeyName(table.name, fk.columnNames);
-        const referencedColumnNames = fk.referencedColumnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(", ");
+        }
+        const referencedColumnNames = fk.referencedColumnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(', ');
 
         let constraint = `FOREIGN KEY (${columnNames}) REFERENCES ${this.escapeTableName(fk.referencedTableName)} (${referencedColumnNames}) CONSTRAINT ${fk.name}`;
-        if (fk.onDelete)
+        if (fk.onDelete) {
           constraint += ` ON DELETE ${fk.onDelete}`;
-        if (fk.onUpdate)
+        }
+        if (fk.onUpdate) {
           constraint += ` ON UPDATE ${fk.onUpdate}`;
+        }
 
         return constraint;
-      }).join(", ");
+      }).join(', ');
 
       sql += `, ${foreignKeysSql}`;
     }
@@ -1411,7 +1437,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     const primaryColumns = table.columns.filter(column => column.isPrimary);
     if (primaryColumns.length > 0) {
       const primaryKeyName = this.connection.namingStrategy.primaryKeyName(table.name, primaryColumns.map(column => column.name));
-      const columnNames = primaryColumns.map(column => `${C_QUOTING}${column.name}${C_QUOTING}`).join(", ");
+      const columnNames = primaryColumns.map(column => `${C_QUOTING}${column.name}${C_QUOTING}`).join(', ');
       sql += `, PRIMARY KEY (${columnNames}) CONSTRAINT ${I_QUOTING}${primaryKeyName}${I_QUOTING}`;
     }
 
@@ -1440,16 +1466,16 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Builds create index sql.
    */
   protected createIndexSql(table: Table, index: TableIndex): string {
-    const columns = index.columnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(", ");
-    return `CREATE ${index.isUnique ? "UNIQUE " : ""}INDEX  ${I_QUOTING}${index.name}${I_QUOTING} ON ${this.escapeTableName(table)} (${columns})`;
+    const columns = index.columnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(', ');
+    return `CREATE ${index.isUnique ? 'UNIQUE ' : ''}INDEX  ${I_QUOTING}${index.name}${I_QUOTING} ON ${this.escapeTableName(table)} (${columns})`;
   }
 
   /**
    * Builds drop index sql.
    */
   protected dropIndexSql(table: Table, indexOrName: TableIndex | string): string {
-    let indexName = indexOrName instanceof TableIndex ? indexOrName.name : indexOrName;
-    let schema = this.parseTableName(table, true);
+    const indexName = indexOrName instanceof TableIndex ? indexOrName.name : indexOrName;
+    const schema = this.parseTableName(table, true);
     if (indexOrName['autocreated']) {
       return this._alterTableDropConstraint(table, indexName);
     }
@@ -1461,7 +1487,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    */
   protected createPrimaryKeySql(table: Table, columnNames: string[]): string {
     const primaryKeyName = this.connection.namingStrategy.primaryKeyName(table.name, columnNames);
-    const columnNamesString = columnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(", ");
+    const columnNamesString = columnNames.map(columnName => `${C_QUOTING}${this.handleSqlColumn(columnName)}${C_QUOTING}`).join(', ');
     return this._alterTableAddConstraint(table, 'PRIMARY KEY', columnNamesString, primaryKeyName);
   }
 
@@ -1478,7 +1504,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Builds create unique constraint sql.
    */
   protected createUniqueConstraintSql(table: Table, uniqueConstraint: TableUnique): string {
-    const columnNames = uniqueConstraint.columnNames.map(column => C_QUOTING + this.handleSqlColumn(column) + C_QUOTING).join(", ");
+    const columnNames = uniqueConstraint.columnNames.map(column => C_QUOTING + this.handleSqlColumn(column) + C_QUOTING).join(', ');
     return this._alterTableAddConstraint(table, 'UNIQUE', columnNames, uniqueConstraint.name);
   }
 
@@ -1513,13 +1539,14 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Builds create foreign key sql.
    */
   protected createForeignKeySql(table: Table, foreignKey: TableForeignKey): string {
-    const columnNames = foreignKey.columnNames.map(column => `${C_QUOTING}` + this.handleSqlColumn(column) + `${C_QUOTING}`).join(", ");
-    const referencedColumnNames = foreignKey.referencedColumnNames.map(column => `${C_QUOTING}` + this.handleSqlColumn(column) + `${C_QUOTING}`).join(",");
+    const columnNames = foreignKey.columnNames.map(column => `${C_QUOTING}` + this.handleSqlColumn(column) + `${C_QUOTING}`).join(', ');
+    const referencedColumnNames = foreignKey.referencedColumnNames.map(column => `${C_QUOTING}` + this.handleSqlColumn(column) + `${C_QUOTING}`).join(',');
 
     let sql = `ALTER TABLE ${this.escapeTableName(table)} ADD CONSTRAINT FOREIGN KEY (${columnNames}) ` +
       `REFERENCES ${this.escapeTableName(foreignKey.referencedTableName)}(${referencedColumnNames})`;
-    if (foreignKey.onDelete)
+    if (foreignKey.onDelete) {
       sql += ` ON DELETE ${foreignKey.onDelete}`;
+    }
 
     sql += ` CONSTRAINT ${foreignKey.name}`;
 
@@ -1539,11 +1566,11 @@ export class InformixQueryRunner extends AiosQueryRunner {
    */
   protected escapeTableName(target: Table | string, disableEscape?: boolean): string {
     let tableName = target instanceof Table ? target.name : target;
-    tableName = tableName.indexOf(".") === -1 && this.driver.options.user ? `${this.driver.options.user}.${tableName}` : tableName;
+    tableName = tableName.indexOf('.') === -1 && this.driver.options.user ? `${this.driver.options.user}.${tableName}` : tableName;
 
-    return tableName.split(".").map(i => {
+    return tableName.split('.').map(i => {
       return disableEscape ? i : `${T_QUOTING}${i}${T_QUOTING}`;
-    }).join(".");
+    }).join('.');
   }
 
 
@@ -1552,7 +1579,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
    */
   protected parseTableName(target: Table | string, disableEscape: boolean = false) {
     const tableName = target instanceof Table ? target.name : target;
-    if (tableName.indexOf(".") === -1) {
+    if (tableName.indexOf('.') === -1) {
       if (disableEscape) {
         return {
           tableName: `${tableName}`
@@ -1564,13 +1591,13 @@ export class InformixQueryRunner extends AiosQueryRunner {
     } else {
       if (disableEscape) {
         return {
-          owner: `${tableName.split(".")[0]}`,
-          tableName: `${tableName.split(".")[1]}`
+          owner: `${tableName.split('.')[0]}`,
+          tableName: `${tableName.split('.')[1]}`
         };
       }
       return {
-        owner: `${S_QUOTING}${tableName.split(".")[0]}${S_QUOTING}`,
-        tableName: `${S_QUOTING}${tableName.split(".")[1]}${S_QUOTING}`
+        owner: `${S_QUOTING}${tableName.split('.')[0]}${S_QUOTING}`,
+        tableName: `${S_QUOTING}${tableName.split('.')[1]}${S_QUOTING}`
       };
     }
   }
@@ -1583,30 +1610,33 @@ export class InformixQueryRunner extends AiosQueryRunner {
     let c = this.handleSqlColumn(column.name);
 
     if (column.isGenerated === true) {
-      if (['integer', 'int', 'smallint'].indexOf(column.type) !== -1)
-        c += " SERIAL";
-      else if (column.type === "bigint")
-        c += " BIGSERIAL";
-      else
-        c += " " + column.type.toUpperCase();
-    } else {
-      if (column.type == 'string' || column.type == 'text') {
-        // make text
-        c += " LVARCHAR";
+      if (['integer', 'int', 'smallint'].indexOf(column.type) !== -1) {
+        c += ' SERIAL';
+      } else if (column.type === 'bigint') {
+        c += ' BIGSERIAL';
       } else {
-        c += " " + column.type.toUpperCase();
+        c += ' ' + column.type.toUpperCase();
+      }
+    } else {
+      if (column.type === 'string' || column.type === 'text') {
+        // make text
+        c += ' LVARCHAR';
+      } else {
+        c += ' ' + column.type.toUpperCase();
       }
     }
 
     if (column.length) {
-      c += `(${column.length})`
+      c += `(${column.length})`;
     }
 
-    if (column.isNullable !== true)
-      c += " NOT NULL";
+    if (column.isNullable !== true) {
+      c += ' NOT NULL';
+    }
 
-    if (column.default !== undefined && column.default !== null)
-      c += " DEFAULT " + column.default;
+    if (column.default !== undefined && column.default !== null) {
+      c += ' DEFAULT ' + column.default;
+    }
 
 
     return c;

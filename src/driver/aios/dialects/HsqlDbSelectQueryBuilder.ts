@@ -1,4 +1,4 @@
-import {QueryRunner, SelectQueryBuilder} from "typeorm";
+import {QueryRunner, SelectQueryBuilder} from 'typeorm';
 
 
 export class HsqlDbSelectQueryBuilder<Entity> extends SelectQueryBuilder<Entity> {
