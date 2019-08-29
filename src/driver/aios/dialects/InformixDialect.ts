@@ -89,7 +89,8 @@ export class InformixDialect extends AbstractDialect {
   buildQuery(query: string, parameters?: string[]) {
     let str = query;
     if (_.isArray(parameters) && parameters.length > 0) {
-      parameters.map((p: string, idx: number) => {
+      for (let idx = parameters.length - 1; idx >= 0; idx--) {
+        let p = parameters[idx]
         let value = p;
         if (_.isString(p)) {
           value = "'" + this.escapeValue(value) + "'";
@@ -101,7 +102,7 @@ export class InformixDialect extends AbstractDialect {
           value = "'" + (p ? 'T' : 'F') + "'";
         }
         str = str.replace('$' + (idx + 1), `${value}`)
-      })
+      }
     }
     return str;
   }
