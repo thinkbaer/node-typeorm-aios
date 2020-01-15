@@ -66,12 +66,12 @@ export abstract class AbstractDialect implements IDialect {
   }
 
   escape(name: string): string {
-    return name.replace(/\'/, '\'\'');
+    return name.replace(/\'/g, '\'\'');
   }
 
   escapeValue(name: any): string {
     if (_.isString(name)) {
-      return name.replace(/\'/, '\'\'');
+      return name.replace(/\'/g, '\'\'');
     } else {
       return name;
     }
