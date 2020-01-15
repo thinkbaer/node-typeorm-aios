@@ -1,24 +1,24 @@
 import {expect} from 'chai';
 import {suite, test, timeout} from 'mocha-typescript';
 import {createConnection, DatabaseType, getConnectionManager, Table, TableColumn} from 'typeorm';
-import {AiosConnectionOptions} from "../../src/driver/aios/AiosConnectionOptions";
+import {AiosConnectionOptions} from '../../src/driver/aios/AiosConnectionOptions';
 
 import '../../src/integrate';
-import {AiosQueryRunner} from "../../src/driver/aios/AiosQueryRunner";
-import * as _ from "lodash";
-import {Car, Category} from "./test-schema";
-import {TableOptions} from "../../node_modules/typeorm/schema-builder/options/TableOptions";
-import {AiosDriver} from "../../src/driver/aios/AiosDriver";
+import {AiosQueryRunner} from '../../src/driver/aios/AiosQueryRunner';
+import * as _ from 'lodash';
+import {Car, Category} from './test-schema';
+import {TableOptions} from '../../node_modules/typeorm/schema-builder/options/TableOptions';
+import {AiosDriver} from '../../src/driver/aios/AiosDriver';
 
 
 const DB = 'informix';
 
 const aiosConfigTemplate: AiosConnectionOptions = {
   id: 'informix-dev-01',
-  type: <DatabaseType>"aios",
+  type: <DatabaseType>'aios',
   jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
-  jdbcDriverLocation: "/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar",
-  url: "jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=",
+  jdbcDriverLocation: '/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar',
+  url: 'jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=',
   user: 'informix',
   password: 'in4mix',
   dialect: DB,
@@ -35,18 +35,18 @@ class TestSpec {
 
   @test
   async 'connect / db information / disconnect'() {
-    let aiosConfig = _.clone(aiosConfigTemplate);
+    const aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
-    let cars = await runner.query("SELECT count(*) c FROM iot_data_ts");
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const cars = await runner.query('SELECT count(*) c FROM iot_data_ts');
     expect(cars).to.have.length(1);
     expect(cars.shift()).to.deep.eq({c: 0});
 
-    let driver: AiosDriver = <AiosDriver>connection.driver;
+    const driver: AiosDriver = <AiosDriver>connection.driver;
 
-    let catalogs = await driver._catalogs();
+    const catalogs = await driver._catalogs();
     expect(catalogs).to.deep.eq(driver.catalogs);
 
     let res: any = await runner.hasDatabase('iot');
@@ -73,11 +73,11 @@ class TestSpec {
     res = await runner.hasColumn('iot_data_ts', 'desc');
     expect(res).to.be.true;
 
-    let tables = await runner['loadTables'](['iot_data_ts']);
+    const tables = await runner['loadTables'](['iot_data_ts']);
     expect(tables).to.have.length(1);
 
-    let table = tables.shift();
-    let _table = JSON.parse(JSON.stringify(table));
+    const table = tables.shift();
+    const _table = JSON.parse(JSON.stringify(table));
     expect(_table).to.deep.eq({
       columns:
         [
@@ -101,7 +101,7 @@ class TestSpec {
           isPrimary: false,
           isUnique: false,
           isArray: false,
-          length: "128",
+          length: '128',
           zerofill: false,
           unsigned: false,
           name: 'desc',
@@ -115,7 +115,7 @@ class TestSpec {
           isPrimary: false,
           isUnique: false,
           isArray: false,
-          length: "2048",
+          length: '2048',
           zerofill: false,
           unsigned: false,
           name: 'readings',
@@ -124,7 +124,7 @@ class TestSpec {
           data_type: 'timeseries(iot_data_t)',
           comment: ''
         }],
-      indices:[],
+      indices: [],
       exclusions: [],
       foreignKeys: [],
       uniques: [],
@@ -140,14 +140,14 @@ class TestSpec {
   @test
   async 'create table / drop table'() {
     _.remove(getConnectionManager().connections, x => true);
-    let aiosConfig = _.clone(aiosConfigTemplate);
+    const aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    let driver: AiosDriver = <AiosDriver>connection.driver;
-    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const driver: AiosDriver = <AiosDriver>connection.driver;
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
 
-    let tableDef = new Table(<TableOptions>{
+    const tableDef = new Table(<TableOptions>{
       name: 'aios_test',
       columns: [
         {
@@ -155,7 +155,7 @@ class TestSpec {
           type: 'integer',
           isGenerated: true,
           isPrimary: true,
-          generationStrategy: "increment"
+          generationStrategy: 'increment'
         },
         {
           name: 'name',
@@ -169,8 +169,8 @@ class TestSpec {
     expect(res.affected).to.be.eq(0);
 
     await runner.createTable(tableDef, true, true, true);
-    let table = await runner.getTable(tableDef.name);
-    let _table = JSON.parse(JSON.stringify(table));
+    const table = await runner.getTable(tableDef.name);
+    const _table = JSON.parse(JSON.stringify(table));
     expect(_table).to.deep.eq({
       columns:
         [
@@ -180,7 +180,7 @@ class TestSpec {
             isPrimary: true,
             isUnique: false,
             isArray: false,
-            length: "",
+            length: '',
             zerofill: false,
             unsigned: false,
             no: 1,
@@ -196,7 +196,7 @@ class TestSpec {
             isPrimary: false,
             isUnique: false,
             isArray: false,
-            length: "128",
+            length: '128',
             zerofill: false,
             unsigned: false,
             no: 2,
@@ -225,14 +225,14 @@ class TestSpec {
   @test
   async 'add / change / rename / drop column'() {
 
-    let aiosConfig = _.clone(aiosConfigTemplate);
+    const aiosConfig = _.clone(aiosConfigTemplate);
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    let driver: AiosDriver = <AiosDriver>connection.driver;
-    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const driver: AiosDriver = <AiosDriver>connection.driver;
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
 
-    let tableDef = new Table(<TableOptions>{
+    const tableDef = new Table(<TableOptions>{
       name: 'aios_test',
       columns: [
         {
@@ -240,7 +240,7 @@ class TestSpec {
           type: 'integer',
           isGenerated: true,
           isPrimary: true,
-          generationStrategy: "increment"
+          generationStrategy: 'increment'
         },
         {
           name: 'name',
@@ -255,14 +255,14 @@ class TestSpec {
 
     await runner.createTable(tableDef, true, true, true);
 
-    let column = new TableColumn({
+    const column = new TableColumn({
       name: 'value',
       type: 'string',
       length: '128'
 
     });
 
-    let newColumn = new TableColumn({
+    const newColumn = new TableColumn({
       name: 'value',
       type: 'string',
       length: '64',
@@ -270,7 +270,7 @@ class TestSpec {
       isUnique: true
     });
 
-    let newColumn2 = new TableColumn({
+    const newColumn2 = new TableColumn({
       name: 'value_new',
       type: 'string',
       length: '64',
@@ -307,15 +307,15 @@ class TestSpec {
   @test
   async 'crud'() {
 
-    let aiosConfig = _.clone(aiosConfigTemplate);
+    const aiosConfig = _.clone(aiosConfigTemplate);
     (<any>aiosConfig).entities = [Car, Category];
     (<any>aiosConfig).synchronize = true;
 
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    let driver: AiosDriver = <AiosDriver>connection.driver;
-    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const driver: AiosDriver = <AiosDriver>connection.driver;
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
 
     let categories = [];
 
@@ -362,15 +362,15 @@ class TestSpec {
     let q = await connection.getRepository(Category).createQueryBuilder('category');
     q = q.leftJoin(Car, 'car', 'category.id = car.categories_id');
     q.limit(3);
-    let categories2 = await q.getRawMany();
+    const categories2 = await q.getRawMany();
     expect(categories2).to.have.length(3);
     expect(categories2.filter(x => _.has(x, 'category_id'))).to.have.length(3);
 
-    let count = await connection.getRepository(Category).count();
-    let deleteResult = await connection.getRepository(Category).remove([categories.shift()]);
+    const count = await connection.getRepository(Category).count();
+    const deleteResult = await connection.getRepository(Category).remove([categories.shift()]);
     expect(deleteResult).to.have.length(1);
     expect(deleteResult.filter(x => _.isUndefined(x['id']))).to.have.length(1);
-    let countAfter = await connection.getRepository(Category).count();
+    const countAfter = await connection.getRepository(Category).count();
     expect(countAfter).to.be.eq(count - 1);
 
     await connection.close();
