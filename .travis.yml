@@ -13,6 +13,8 @@ services:
 node_js:
   - 10
   - 11
+  - 12
+  - 13
 
 before_install:
   - sudo sysctl -w kernel.shmmax=2073741824
