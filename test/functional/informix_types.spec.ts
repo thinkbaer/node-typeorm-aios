@@ -10,25 +10,25 @@ import {
   Table,
   TableColumn
 } from 'typeorm';
-import {AiosConnectionOptions} from "../../src/driver/aios/AiosConnectionOptions";
+import {AiosConnectionOptions} from '../../src/driver/aios/AiosConnectionOptions';
 
 import '../../src/integrate';
-import {AiosQueryRunner} from "../../src/driver/aios/AiosQueryRunner";
-import * as _ from "lodash";
-import {Car, Category} from "./test-schema";
-import {TableOptions} from "../../node_modules/typeorm/schema-builder/options/TableOptions";
-import {AiosDriver} from "../../src/driver/aios/AiosDriver";
-import {InformixDialect} from "../../src";
+import {AiosQueryRunner} from '../../src/driver/aios/AiosQueryRunner';
+import * as _ from 'lodash';
+import {Car, Category} from './test-schema';
+import {TableOptions} from '../../node_modules/typeorm/schema-builder/options/TableOptions';
+import {AiosDriver} from '../../src/driver/aios/AiosDriver';
+import {InformixDialect} from '../../src';
 
 
 const DB = 'informix';
 
 const aiosConfigTemplate: AiosConnectionOptions = {
   id: 'informix-dev-02',
-  type: <DatabaseType>"aios",
+  type: <DatabaseType>'aios',
   jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
-  jdbcDriverLocation: "/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar",
-  url: "jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=",
+  jdbcDriverLocation: '/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar',
+  url: 'jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=',
   user: 'informix',
   password: 'in4mix',
   dialect: DB,
@@ -38,7 +38,7 @@ const aiosConfigTemplate: AiosConnectionOptions = {
   connectionTimeout: 5000
 };
 
-const skip = ['datetime', 'interval', 'bigserial', 'serial', 'serial8']
+const skip = ['datetime', 'interval', 'bigserial', 'serial', 'serial8'];
 
 @suite('functional/' + DB + '_types') @timeout(20000)
 class TestSpec {
@@ -47,18 +47,18 @@ class TestSpec {
   @test
   async 'create table type tables'() {
     _.remove(getConnectionManager().connections, x => true);
-    let aiosConfig = _.clone(aiosConfigTemplate);
-    (<any>aiosConfig).entities = []
-    let dialect = new InformixDialect()
-    let tables = [];
-    for (let t of dialect.supportedDataTypes) {
+    const aiosConfig = _.clone(aiosConfigTemplate);
+    (<any>aiosConfig).entities = [];
+    const dialect = new InformixDialect();
+    const tables = [];
+    for (const t of dialect.supportedDataTypes) {
       let hasLength = false;
       if (dialect.withLengthColumnTypes.indexOf(t) > -1) {
         hasLength = true;
       }
-      if (skip.indexOf(<string>t) != -1) continue;
-      let tableName = ('aios_test_' + t).replace(/[^\w]/g, '_');
-      let tableDef = new Table(<TableOptions>{
+      if (skip.indexOf(<string>t) !== -1) { continue; }
+      const tableName = ('aios_test_' + t).replace(/[^\w]/g, '_');
+      const tableDef = new Table(<TableOptions>{
         name: tableName,
         columns: [
           {
@@ -66,7 +66,7 @@ class TestSpec {
             type: 'integer',
             isGenerated: true,
             isPrimary: true,
-            generationStrategy: "increment"
+            generationStrategy: 'increment'
           },
           {
             name: 'name',
@@ -93,14 +93,14 @@ class TestSpec {
     }
 
 
-    let connection = await createConnection(<any>aiosConfig);
+    const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    let driver: AiosDriver = <AiosDriver>connection.driver;
-    let runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const driver: AiosDriver = <AiosDriver>connection.driver;
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
 
 
-    for (let tableDef of tables) {
+    for (const tableDef of tables) {
 
       let res: any = await driver._execute('DROP TABLE IF EXISTS ' + tableDef.name);
       expect(res.affected).to.be.eq(0);
@@ -109,15 +109,15 @@ class TestSpec {
       res = await runner.hasTable(tableDef.name);
       expect(res).to.be.true;
 
-      let table = await runner.getTable(tableDef.name);
-      let _table = JSON.parse(JSON.stringify(table));
+      const table = await runner.getTable(tableDef.name);
+      const _table = JSON.parse(JSON.stringify(table));
 
       const type = tableDef.columns[1].type;
       let value = null;
       let values = null;
 
 
-      let compare = (x:any,y:any) => x === y;
+      let compare = (x: any, y: any) => x === y;
       switch (type) {
         case 'int':
         case 'smallint':
@@ -137,12 +137,12 @@ class TestSpec {
         case 'dec':
         case 'numeric':
           value = 256.68;
-          compare = (x:any,y:any) => Math.round(x*10000) === Math.round(y*10000);
+          compare = (x: any, y: any) => Math.round(x * 10000) === Math.round(y * 10000);
           break;
         case 'smallfloat':
 
           value = 256.68;
-          compare = (x:any,y:any) => Math.round(x*100) === Math.round(y*100);
+          compare = (x: any, y: any) => Math.round(x * 100) === Math.round(y * 100);
           break;
         case 'boolean':
           values = [true, false];
@@ -153,7 +153,7 @@ class TestSpec {
         case 'character':
         case 'lvarchar':
         case 'text':
-        //case 'blob':
+        // case 'blob':
           value = 'Test';
           break;
         case 'nchar':
@@ -164,19 +164,19 @@ class TestSpec {
           break;
         case 'byte':
           // TODO
-          //value = new ArrayBuffer(1);
-          //value[0] = 0x4;
+          // value = new ArrayBuffer(1);
+          // value[0] = 0x4;
           break;
         case 'datetime year to fraction':
           value = new Date();
-          compare = (x:any,y:any) => x.toISOString().replace(/\d{3}Z$/,'') === y.toISOString().replace(/\d{3}Z$/,'');
+          compare = (x: any, y: any) => x.toISOString().replace(/\d{3}Z$/, '') === y.toISOString().replace(/\d{3}Z$/, '');
           break;
         case 'datetime year to second':
           value = new Date();
-          compare = (x:any,y:any) => x.toISOString().replace(/\d{3}Z$/,'') === y.toISOString().replace(/\d{3}Z$/,'');
+          compare = (x: any, y: any) => x.toISOString().replace(/\d{3}Z$/, '') === y.toISOString().replace(/\d{3}Z$/, '');
           break;
         case 'date':
-          value = new Date().toISOString().substring(0,10);
+          value = new Date().toISOString().substring(0, 10);
           break;
         case 'json':
           // Currently not supported by aios
@@ -186,30 +186,30 @@ class TestSpec {
 
       console.log(tableDef.name, type, value);
       // null test
-      let repo = connection.getRepository(_table.name);
-      let saved = await repo.save({name: null})
+      const repo = connection.getRepository(tableDef.name);
+      const saved = await repo.save({name: null});
 
       if (value) {
-        let saved: any = await repo.save({name: value});
+        const saved: any = await repo.save({name: value});
         expect(_.keys(saved)).to.have.members(['id', 'name']);
 
-        let found: any = await repo.findOne(saved.id);
-        console.log('> okay',saved.name,found.name);
-        expect(compare(saved.name,found.name)).to.be.true;
+        const found: any = await repo.findOne(saved.id);
+        console.log('> okay', saved.name, found.name);
+        expect(compare(saved.name, found.name)).to.be.true;
 
       } else if (values) {
-        for (let x of values) {
-          let saved: any = await repo.save({name: x});
+        for (const x of values) {
+          const saved: any = await repo.save({name: x});
           expect(_.keys(saved)).to.have.members(['id', 'name']);
 
-          let found: any = await repo.findOne(saved.id);
-          console.log('> okay',saved.name,found.name);
-          expect(compare(saved.name,found.name)).to.be.true;
+          const found: any = await repo.findOne(saved.id);
+          console.log('> okay', saved.name, found.name);
+          expect(compare(saved.name, found.name)).to.be.true;
 
         }
 
       } else {
-        console.log('> skipping cause TODO')
+        console.log('> skipping cause TODO');
       }
     }
 

@@ -1,8 +1,8 @@
-import {Column, Entity, EntitySchema, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
-import {EntitySchemaOptions} from "../../node_modules/typeorm/entity-schema/EntitySchemaOptions";
+import {Column, Entity, EntitySchema, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {EntitySchemaOptions} from '../../node_modules/typeorm/entity-schema/EntitySchemaOptions';
 
 export const CategoryEntity = new EntitySchema(<EntitySchemaOptions<any>>{
-  name: "category",
+  name: 'category',
   columns: {
     id: {
       type: Number,
