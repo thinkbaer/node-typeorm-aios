@@ -93,7 +93,7 @@ export class HsqlDbDialect extends AbstractDialect {
   }
 
   escape(name: string): string {
-    return name.replace(/\'/, '\'\'');
+    return name.replace(/\'/g, '\'\'');
   }
 
   escapeQueryWithParameters(sql: string, parameters: ObjectLiteral, nativeParameters: ObjectLiteral): [string, any[]] {
