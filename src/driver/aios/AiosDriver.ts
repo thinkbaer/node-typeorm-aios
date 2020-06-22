@@ -123,7 +123,7 @@ export class AiosDriver implements Driver {
     this.connection = connection;
     this.options = connection.options as AiosConnectionOptions;
     this.loadDependencies();
-    const AiosServer = this.AIOS;
+    const AiosServer = this.AIOS.Server;
     this.aiosServer = new AiosServer({
       host: this.options.host,
       port: this.options.port
