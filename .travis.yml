@@ -1,8 +1,4 @@
-dist: xenial
-
 language: node_js
-
-sudo: required
 
 env:
   - DOCKER_COMPOSE_VERSION=1.23.1
@@ -15,6 +11,7 @@ node_js:
   - 11
   - 12
   - 13
+  - 14
 
 before_install:
   - sudo sysctl -w kernel.shmmax=2073741824
