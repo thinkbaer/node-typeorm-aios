@@ -14,8 +14,6 @@ node_js:
   - 14
 
 before_install:
-  - sudo sysctl -w kernel.shmmax=2073741824
-  - sudo sysctl -w kernel.shmall=2073741824
   - npm install -g nyc
   - npm install -g codecov
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -23,6 +21,6 @@ before_install:
   - sudo mv docker-compose /usr/local/bin
   - cd docker/testing
   - docker-compose up &
-  - cd ..
+  - cd ../..
   - sleep 180
 
