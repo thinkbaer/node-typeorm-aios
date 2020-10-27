@@ -1,4 +1,4 @@
-import {ColumnType, ObjectLiteral, PromiseUtils, Table, TableColumn, TableForeignKey, TableIndex} from 'typeorm';
+import {ColumnType, ObjectLiteral, Table, TableColumn, TableForeignKey, TableIndex} from 'typeorm';
 import {AiosQueryRunner} from '../AiosQueryRunner';
 import * as _ from 'lodash';
 import {TableUnique} from 'typeorm/schema-builder/table/TableUnique';
@@ -307,7 +307,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Creates a new columns from the column in the table.
    */
   async addColumns(tableOrName: Table | string, columns: TableColumn[]): Promise<void> {
-    await PromiseUtils.runInSequence(columns, column => this.addColumn(tableOrName, column));
+    for (const column of columns) {
+      await this.addColumn(tableOrName, column);
+    }
+    // await PromiseUtils.runInSequence(columns, column => this.addColumn(tableOrName, column));
   }
 
   /**
@@ -364,7 +367,8 @@ export class InformixQueryRunner extends AiosQueryRunner {
       if (oldColumn.name !== newColumn.name) {
         // rename column
         upQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}${oldColumn.name}${C_QUOTING} TO ${C_QUOTING}${newColumn.name}${C_QUOTING}`);
-        // downQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}${newColumn.name}${C_QUOTING} TO ${C_QUOTING}${oldColumn.name}${C_QUOTING}`);
+        // downQueries.push(`RENAME COLUMN ${this.escapeTableName(table)}.${C_QUOTING}
+        // ${newColumn.name}${C_QUOTING} TO ${C_QUOTING}${oldColumn.name}${C_QUOTING}`);
 
         // rename column primary key constraint
         if (oldColumn.isPrimary === true) {
@@ -407,6 +411,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
           // build queries
           upQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${unique.name}${I_QUOTING} TO ${I_QUOTING}${newUniqueName}${I_QUOTING}`);
+          // tslint:disable-next-line:max-line-length
           // downQueries.push(`RENAME CONSTRAINT ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newUniqueName}${I_QUOTING} TO ${I_QUOTING}${unique.name}${I_QUOTING}`);
 
           // replace constraint name
@@ -441,6 +446,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 
           // build queries
           upQueries.push(`RENAME CONSTRAINT  ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${foreignKey.name}${I_QUOTING} TO ${I_QUOTING}${newForeignKeyName}${I_QUOTING}`);
+          // tslint:disable-next-line:max-line-length
           // downQueries.push(`RENAME CONSTRAINT  ${parsedTable.owner ? parsedTable.owner : this.driver.options.user}.${I_QUOTING}${newForeignKeyName}${I_QUOTING} TO ${I_QUOTING}${foreignKey.name}${I_QUOTING}`);
 
           // replace constraint name
@@ -515,6 +521,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
           if (uniqueConstraint) {
             clonedTable.uniques.splice(clonedTable.uniques.indexOf(uniqueConstraint), 1);
             upQueries.push(this._alterTableDropConstraint(table, uniqueConstraint.name));
+            // tslint:disable-next-line:max-line-length
             downQueries.push(`ALTER TABLE ${this.escapeTableName(table)} ADD CONSTRAINT UNIQUE (${I_QUOTING}${newColumn.name}${I_QUOTING}) CONSTRAINT ${I_QUOTING}${uniqueConstraint.name}${I_QUOTING} `);
           }
         }
@@ -529,7 +536,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Changes a column in the table.
    */
   async changeColumns(tableOrName: Table | string, changedColumns: { newColumn: TableColumn, oldColumn: TableColumn }[]): Promise<void> {
-    await PromiseUtils.runInSequence(changedColumns, changedColumn => this.changeColumn(tableOrName, changedColumn.oldColumn, changedColumn.newColumn));
+    for (const changedColumn of changedColumns) {
+      await this.changeColumn(tableOrName, changedColumn.oldColumn, changedColumn.newColumn);
+    }
+    // await PromiseUtils.runInSequence(changedColumns, changedColumn => this.changeColumn(tableOrName, changedColumn.oldColumn, changedColumn.newColumn));
   }
 
   /**
@@ -601,7 +611,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Drops the columns in the table.
    */
   async dropColumns(tableOrName: Table | string, columns: TableColumn[]): Promise<void> {
-    await PromiseUtils.runInSequence(columns, column => this.dropColumn(tableOrName, column));
+    for (const column of columns) {
+      await this.dropColumn(tableOrName, column);
+    }
+    // await PromiseUtils.runInSequence(columns, column => this.dropColumn(tableOrName, column));
   }
 
   /**
@@ -700,7 +713,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Creates new unique constraints.
    */
   async createUniqueConstraints(tableOrName: Table | string, uniqueConstraints: TableUnique[]): Promise<void> {
-    await PromiseUtils.runInSequence(uniqueConstraints, uniqueConstraint => this.createUniqueConstraint(tableOrName, uniqueConstraint));
+    for (const uniqueConstraint of uniqueConstraints) {
+      await this.createUniqueConstraint(tableOrName, uniqueConstraint);
+    }
+    // await PromiseUtils.runInSequence(uniqueConstraints, uniqueConstraint => this.createUniqueConstraint(tableOrName, uniqueConstraint));
   }
 
   /**
@@ -723,7 +739,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Drops unique constraints.
    */
   async dropUniqueConstraints(tableOrName: Table | string, uniqueConstraints: TableUnique[]): Promise<void> {
-    await PromiseUtils.runInSequence(uniqueConstraints, uniqueConstraint => this.dropUniqueConstraint(tableOrName, uniqueConstraint));
+    for (const uniqueConstraint of uniqueConstraints) {
+      await this.dropUniqueConstraint(tableOrName, uniqueConstraint);
+    }
+    // await PromiseUtils.runInSequence(uniqueConstraints, uniqueConstraint => this.dropUniqueConstraint(tableOrName, uniqueConstraint));
   }
 
   /**
@@ -801,7 +820,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Creates a new foreign keys.
    */
   async createForeignKeys(tableOrName: Table | string, foreignKeys: TableForeignKey[]): Promise<void> {
-    await PromiseUtils.runInSequence(foreignKeys, foreignKey => this.createForeignKey(tableOrName, foreignKey));
+    for (const foreignKey of foreignKeys) {
+      await this.createForeignKey(tableOrName, foreignKey);
+    }
+    // await PromiseUtils.runInSequence(foreignKeys, foreignKey => this.createForeignKey(tableOrName, foreignKey));
   }
 
   /**
@@ -825,7 +847,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Drops a foreign keys from the table.
    */
   async dropForeignKeys(tableOrName: Table | string, foreignKeys: TableForeignKey[]): Promise<void> {
-    await PromiseUtils.runInSequence(foreignKeys, foreignKey => this.dropForeignKey(tableOrName, foreignKey));
+    for (const foreignKey of foreignKeys) {
+      await this.dropForeignKey(tableOrName, foreignKey);
+    }
+    // await PromiseUtils.runInSequence(foreignKeys, foreignKey => this.dropForeignKey(tableOrName, foreignKey));
   }
 
   /**
@@ -849,7 +874,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Creates a new indices
    */
   async createIndices(tableOrName: Table | string, indices: TableIndex[]): Promise<void> {
-    await PromiseUtils.runInSequence(indices, index => this.createIndex(tableOrName, index));
+    for (const index of indices) {
+      await this.createIndex(tableOrName, index);
+    }
+    // await PromiseUtils.runInSequence(indices, index => this.createIndex(tableOrName, index));
   }
 
   /**
@@ -874,7 +902,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
    * Drops an indices from the table.
    */
   async dropIndices(tableOrName: Table | string, indices: TableIndex[]): Promise<void> {
-    await PromiseUtils.runInSequence(indices, index => this.dropIndex(tableOrName, index));
+    for (const index of indices) {
+      await this.dropIndex(tableOrName, index);
+    }
+    // await PromiseUtils.runInSequence(indices, index => this.dropIndex(tableOrName, index));
   }
 
   // /**
@@ -940,6 +971,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
 //    const currentSchema = currentSchemaQuery[0]["current_schema"];
 
     const tablesCondition = tableNames.map(tableName => {
+      // tslint:disable-next-line:prefer-const
       let [schema, name] = tableName.split('.');
       if (!name) {
         name = schema;
@@ -1055,6 +1087,7 @@ export class InformixQueryRunner extends AiosQueryRunner {
     // "con"."confupdtype" AS "on_update" ` +
     //
     //  `FROM ( ` +
+    // tslint:disable-next-line:max-line-length
     //   `SELECT UNNEST ("con1"."conkey") AS "parent", UNNEST ("con1"."confkey") AS "child", "con1"."confrelid", "con1"."conrelid", "con1"."conname", "con1"."contype", "ns"."nspname", "cl"."relname", ` +
     //   `CASE "con1"."confdeltype" WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END as "confdeltype", ` +
     //   `CASE "con1"."confupdtype" WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END as "confupdtype" ` +
@@ -1145,8 +1178,10 @@ export class InformixQueryRunner extends AiosQueryRunner {
           };
 
           Object.keys(checks).forEach(check => {
+            // tslint:disable-next-line:no-bitwise
             if (colType & <any>check) {
               checks[check] = true;
+              // tslint:disable-next-line:no-bitwise
               colType = colType & ~check;
             }
           });
@@ -1167,9 +1202,11 @@ export class InformixQueryRunner extends AiosQueryRunner {
           if (tableColumn.type === 'numeric' || tableColumn.type === 'decimal' || tableColumn.type === 'float') {
             // If one of these properties was set, and another was not, Postgres sets '0' in to unspecified property
             // we set 'undefined' in to unspecified property to avoid changing column on sync
-            if (dbColumn['numeric_precision'] !== null && !this.isDefaultColumnPrecision(table, tableColumn, dbColumn['numeric_precision'])) {
+            if (dbColumn['numeric_precision'] !== null &&
+              !this.isDefaultColumnPrecision(table, tableColumn, dbColumn['numeric_precision'])) {
               tableColumn.precision = dbColumn['numeric_precision'];
-            } else if (dbColumn['numeric_scale'] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn['numeric_scale'])) {
+            } else if (dbColumn['numeric_scale'] !== null &&
+              !this.isDefaultColumnScale(table, tableColumn, dbColumn['numeric_scale'])) {
               tableColumn.precision = undefined;
             }
             if (dbColumn['numeric_scale'] !== null && !this.isDefaultColumnScale(table, tableColumn, dbColumn['numeric_scale'])) {

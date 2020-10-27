@@ -354,7 +354,7 @@ export class AiosDriver implements Driver {
 
 
   /**
-   * Returns true if driver supports RETURNING / OUTPUT statement.
+   * TODO Returns true if driver supports RETURNING / OUTPUT statement.
    */
   isReturningSqlSupported(): boolean {
     return false;
@@ -362,7 +362,14 @@ export class AiosDriver implements Driver {
   }
 
   /**
-   * Returns true if driver supports uuid values generation on its own.
+   * TODO Returns true if driver supports fulltext indices.
+   */
+  isFullTextColumnTypeSupported(): boolean {
+    return false;
+  }
+
+  /**
+   * TODO Returns true if driver supports uuid values generation on its own.
    */
   isUUIDGenerationSupported(): boolean {
     return false;
