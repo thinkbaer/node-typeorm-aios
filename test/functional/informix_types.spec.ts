@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {suite, test, timeout} from 'mocha-typescript';
+import {suite, test, timeout} from '@testdeck/mocha';
 import {
   Column,
   createConnection,
