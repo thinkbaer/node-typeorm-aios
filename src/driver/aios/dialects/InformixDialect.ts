@@ -116,7 +116,9 @@ export class InformixDialect extends AbstractDialect {
     }
 
     if (value === null || value === undefined) {
-      return value;
+      return function () {
+        return 'NULL';
+      };
     }
 
     if (columnMetadata.type === Boolean || columnMetadata.type === 'boolean') {
