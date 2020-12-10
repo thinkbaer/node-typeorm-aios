@@ -31,6 +31,21 @@ export class Category {
 
 
 @Entity()
+export class CarShort {
+
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column('varchar', {length: 128, nullable: true})
+  label: string;
+
+  @Column('varchar', {length: 128})
+  name: string;
+
+}
+
+
+@Entity()
 export class Car {
 
   @PrimaryGeneratedColumn()

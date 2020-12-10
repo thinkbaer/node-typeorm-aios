@@ -6,7 +6,7 @@ import {AiosConnectionOptions} from '../../src/driver/aios/AiosConnectionOptions
 import '../../src/integrate';
 import {AiosQueryRunner} from '../../src/driver/aios/AiosQueryRunner';
 import * as _ from 'lodash';
-import {Car, Category} from './test-schema';
+import {Car, CarShort, Category} from './test-schema';
 import {TableOptions} from '../../node_modules/typeorm/schema-builder/options/TableOptions';
 import {AiosDriver} from '../../src/driver/aios/AiosDriver';
 
@@ -372,6 +372,36 @@ class TestSpec {
     expect(deleteResult.filter(x => _.isUndefined(x['id']))).to.have.length(1);
     const countAfter = await connection.getRepository(Category).count();
     expect(countAfter).to.be.eq(count - 1);
+
+    await connection.close();
+  }
+
+  @test
+  async 'null hack for informix'() {
+
+    const aiosConfig = _.clone(aiosConfigTemplate);
+    (<any>aiosConfig).entities = [CarShort];
+    (<any>aiosConfig).synchronize = true;
+
+    const connection = await createConnection(<any>aiosConfig);
+    expect(connection).to.not.be.null;
+
+    const driver: AiosDriver = <AiosDriver>connection.driver;
+    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+
+
+    const car = new CarShort();
+    car.name = 'V70';
+    car.label = null;
+
+    let cars: any[] = [car];
+
+    cars = await connection.createEntityManager().save(cars);
+    expect(cars).to.have.length(1);
+    expect(cars.filter(x => _.has(x, 'id'))).to.have.length(1);
+
+    const _cars = await connection.getRepository(CarShort).createQueryBuilder().offset(1).limit(1).getMany();
+    expect(_cars).to.have.length(1);
 
     await connection.close();
   }
