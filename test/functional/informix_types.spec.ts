@@ -19,24 +19,25 @@ import {Car, Category} from './test-schema';
 import {TableOptions} from '../../node_modules/typeorm/schema-builder/options/TableOptions';
 import {AiosDriver} from '../../src/driver/aios/AiosDriver';
 import {InformixDialect} from '../../src';
+import {aiosConfigTemplate, DB} from './config';
 
 
-const DB = 'informix';
-
-const aiosConfigTemplate: AiosConnectionOptions = {
-  id: 'informix-dev-02',
-  type: <DatabaseType>'aios',
-  jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
-  jdbcDriverLocation: '/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar',
-  url: 'jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=',
-  user: 'informix',
-  password: 'in4mix',
-  dialect: DB,
-  host: '127.0.0.1',
-  port: 8118,
-  socketTimeout: 5000,
-  connectionTimeout: 5000
-};
+// const DB = 'informix';
+//
+// const aiosConfigTemplate: AiosConnectionOptions = {
+//   id: 'informix-dev-02',
+//   type: <DatabaseType>'aios',
+//   jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
+//   jdbcDriverLocation: '/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar',
+//   url: 'jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=',
+//   user: 'informix',
+//   password: 'in4mix',
+//   dialect: DB,
+//   host: '127.0.0.1',
+//   port: 8118,
+//   socketTimeout: 5000,
+//   connectionTimeout: 5000
+// };
 
 const skip = ['datetime', 'interval', 'bigserial', 'serial', 'serial8'];
 
@@ -97,7 +98,7 @@ class TestSpec {
     expect(connection).to.not.be.null;
 
     const driver: AiosDriver = <AiosDriver>connection.driver;
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
 
 
     for (const tableDef of tables) {

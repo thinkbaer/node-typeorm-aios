@@ -27,6 +27,7 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
     this.distributionMode = distributionMode;
     this.driver = driver;
     this.connection = driver.connection;
+    // @ts-ignore
     this.broadcaster = new Broadcaster(this);
   }
 
@@ -324,6 +325,14 @@ export class AiosQueryRunner extends BaseQueryRunner implements QueryRunner {
 
   protected loadViews(tablePaths: string[]): Promise<View[]> {
     return Promise.resolve([]);
+  }
+
+  getCurrentDatabase(): Promise<string | undefined> {
+    return Promise.resolve(undefined);
+  }
+
+  getCurrentSchema(): Promise<string | undefined> {
+    return Promise.resolve(undefined);
   }
 
 }

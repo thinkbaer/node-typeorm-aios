@@ -9,24 +9,7 @@ import * as _ from 'lodash';
 import {Car, CarShort, Category} from './test-schema';
 import {TableOptions} from '../../node_modules/typeorm/schema-builder/options/TableOptions';
 import {AiosDriver} from '../../src/driver/aios/AiosDriver';
-
-
-const DB = 'informix';
-
-const aiosConfigTemplate: AiosConnectionOptions = {
-  id: 'informix-dev-01',
-  type: <DatabaseType>'aios',
-  jdbcDriverClass: 'com.informix.jdbc.IfxDriver',
-  jdbcDriverLocation: '/data/java/driver/com.informix.ifxjdbc-4.10.JC4DE.jar',
-  url: 'jdbc:informix-sqli://127.0.0.1:9088/iot:INFORMIXSERVER=informix;DELIMITER=',
-  user: 'informix',
-  password: 'in4mix',
-  dialect: DB,
-  host: '127.0.0.1',
-  port: 8118,
-  socketTimeout: 5000,
-  connectionTimeout: 5000
-};
+import {aiosConfigTemplate, DB} from './config';
 
 
 @suite('functional/' + DB) @timeout(20000)
@@ -39,7 +22,7 @@ class TestSpec {
     const connection = await createConnection(<any>aiosConfig);
     expect(connection).to.not.be.null;
 
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
     const cars = await runner.query('SELECT count(*) c FROM iot_data_ts');
     expect(cars).to.have.length(1);
     expect(cars.shift()).to.deep.eq({c: 0});
@@ -145,7 +128,7 @@ class TestSpec {
     expect(connection).to.not.be.null;
 
     const driver: AiosDriver = <AiosDriver>connection.driver;
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
 
     const tableDef = new Table(<TableOptions>{
       name: 'aios_test',
@@ -230,7 +213,7 @@ class TestSpec {
     expect(connection).to.not.be.null;
 
     const driver: AiosDriver = <AiosDriver>connection.driver;
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
 
     const tableDef = new Table(<TableOptions>{
       name: 'aios_test',
@@ -315,7 +298,7 @@ class TestSpec {
     expect(connection).to.not.be.null;
 
     const driver: AiosDriver = <AiosDriver>connection.driver;
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
 
     let categories = [];
 
@@ -378,7 +361,6 @@ class TestSpec {
 
   @test
   async 'null hack for informix'() {
-
     const aiosConfig = _.clone(aiosConfigTemplate);
     (<any>aiosConfig).entities = [CarShort];
     (<any>aiosConfig).synchronize = true;
@@ -387,7 +369,7 @@ class TestSpec {
     expect(connection).to.not.be.null;
 
     const driver: AiosDriver = <AiosDriver>connection.driver;
-    const runner: AiosQueryRunner = <AiosQueryRunner>connection.createQueryRunner();
+    const runner: AiosQueryRunner = <AiosQueryRunner><unknown>connection.createQueryRunner();
 
 
     const car = new CarShort();
