@@ -84,6 +84,6 @@
   "dependencies": {
     "aios": "^1.0.1",
     "lodash": "^4.17.21",
-    "typeorm": "0.2.34"
+    "typeorm": "0.3.0"
   }
 }
